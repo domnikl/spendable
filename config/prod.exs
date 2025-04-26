@@ -18,3 +18,11 @@ config :logger, level: :info
 
 # Runtime production configuration, including reading
 # of environment variables, is done on config/runtime.exs.
+
+# Configure Gocardless with secret id and secret key
+config :spendable, Gocardless.Client,
+  secret_id: System.get_env("GOCARDLESS_SECRET_ID"),
+  secret_key: System.get_env("GOCARDLESS_SECRET_KEY"),
+  environment: :sandbox,
+  redirect_uri: "http://localhost:4001/api/gocardless/callback",
+  base_url: System.get_env("GOCARDLESS_BASE_URL")

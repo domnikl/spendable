@@ -1,10 +1,9 @@
 defmodule Gocardless.Gocardless do
   use Supervisor
 
-  def start_link(config) do
+  def start_link(_) do
     children = [
-      {Finch, name: Gocardless.Finch},
-      {Gocardless.Client, config}
+      {Finch, name: GocardlessApi}
     ]
 
     Supervisor.start_link(__MODULE__, children, name: __MODULE__)

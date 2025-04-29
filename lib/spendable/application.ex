@@ -14,9 +14,7 @@ defmodule Spendable.Application do
       {Phoenix.PubSub, name: Spendable.PubSub},
       # Start the Finch HTTP client for sending emails
       {Finch, name: Spendable.Finch},
-      # Start the Gocardless client
-      # , [config: Application.get_env(:spendable, Gocardless.Client)]},
-      {Gocardless.Gocardless, []},
+      {Gocardless.Supervisor, []},
       # Start a worker by calling: Spendable.Worker.start_link(arg)
       # {Spendable.Worker, arg},
       # Start to serve requests, typically the last entry

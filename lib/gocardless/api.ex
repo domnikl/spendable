@@ -7,9 +7,19 @@ defmodule Gocardless.GocardlessApi do
   @type get_access_token_response :: {:ok, GetAccessTokenResponse.t()} | {:error, any()}
   @callback get_access_token(secret_id :: String.t(), secret_key :: String.t()) ::
               get_access_token_response()
+
+  @type refresh_token_response :: {:ok, RefreshTokenResponse.t()} | {:error, any()}
+  @callback refresh_token(refresh_token :: String.t()) ::
+              {:ok, RefreshTokenResponse.t()} | {:error, any()}
+
+  @type get_institutions_response :: {:ok, GetInstitutionsResponse.t()} | {:error, any()}
+  @callback get_institutions(access_token :: String.t(), country :: String.t()) ::
+              {:ok, GetInstitutionsResponse.t()} | {:error, any()}
 end
 
 defmodule Gocardless.GocardlessApiImpl do
+  alias Gocardless.GocardlessApi.RefreshTokenResponse
+  alias Gocardless.GocardlessApi.GetInstitutionsResponse
   alias Gocardless.GocardlessApi.GetAccessTokenResponse
   @behaviour Gocardless.GocardlessApi
 
@@ -33,21 +43,72 @@ defmodule Gocardless.GocardlessApiImpl do
     end
   end
 
+  def refresh_token(refresh_token) do
+    "/token/refresh/"
+    |> build_request(
+      method: :post,
+      headers: [{"Content-Type", "application/json"}],
+      body: %{
+        refresh: refresh_token
+      }
+    )
+    |> Finch.request(GocardlessApi)
+    |> parse_as_json()
+    |> case do
+      {:ok, json} ->
+        {:ok, RefreshTokenResponse.new(json)}
+
+      error ->
+        error
+    end
+  end
+
+  def get_institutions(access_token, country) do
+    "/institutions/?country=#{country}"
+    |> build_request(
+      headers: [
+        {"Accept", "application/json"},
+        {"Authorization", "Bearer #{access_token}"}
+      ]
+    )
+    |> Finch.request(GocardlessApi)
+    |> parse_as_json()
+    |> case do
+      {:ok, json} ->
+        {:ok, GetInstitutionsResponse.new(json)}
+
+      error ->
+        error
+    end
+  end
+
   defp build_request(path, opts) do
-    # this is where authorization and/or other headers would be added
-    # which are usually common among requests for a particular API
     request_url = "https://bankaccountdata.gocardless.com/api/v2#{path}"
 
-    IO.inspect(request_url, label: "Request URL")
-    IO.inspect(opts, label: "Request Options")
+    body =
+      if opts[:body] do
+        Jason.encode!(opts[:body])
+      else
+        nil
+      end
+
+    headers = opts[:headers] || [{"Accept", "application/json"}]
+
+    headers =
+      if opts[:body] do
+        [{"Content-Type", "application/json"} | headers]
+      else
+        headers
+      end
+
+    IO.inspect(headers, label: "Headers")
+    IO.inspect(body, label: "Body")
 
     Finch.build(
       opts[:method] || :get,
       request_url,
-      [
-        {"Content-Type", "application/json"}
-      ],
-      Jason.encode!(opts[:body] || %{})
+      headers,
+      body
     )
   end
 

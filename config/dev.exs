@@ -85,9 +85,9 @@ config :phoenix_live_view,
 config :swoosh, :api_client, false
 
 # Configure Gocardless with secret id and secret key
-# config :spendable, Gocardless.Client,
-#  secret_id: System.get_env("GOCARDLESS_SECRET_ID"),
-#  secret_key: System.get_env("GOCARDLESS_SECRET_KEY"),
-#  environment: :sandbox,
-#  redirect_uri: "http://localhost:4001/api/gocardless/callback",
-#  base_url: System.get_env("GOCARDLESS_BASE_URL")
+config :spendable, Gocardless.Client,
+  secret_id: System.get_env("GOCARDLESS_SECRET_ID"),
+  secret_key: System.get_env("GOCARDLESS_SECRET_KEY"),
+  environment: :sandbox,
+  redirect_uri: "http://localhost:4001/api/gocardless/callback",
+  base_url: System.get_env("GOCARDLESS_BASE_URL")

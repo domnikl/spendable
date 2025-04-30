@@ -60,7 +60,8 @@ defmodule Spendable.MixProject do
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
       {:mox, "~> 1.0"},
-      {:knigge, "~> 1.4"}
+      {:knigge, "~> 1.4"},
+      {:mishka_chelekom, "~> 0.0.4", only: :dev}
     ]
   end
 

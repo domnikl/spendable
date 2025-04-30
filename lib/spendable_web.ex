@@ -84,7 +84,7 @@ defmodule SpendableWeb do
       # HTML escaping functionality
       import Phoenix.HTML
       # Core UI components and translation
-      import SpendableWeb.CoreComponents
+      use SpendableWeb.Components.MishkaComponents
       import SpendableWeb.Gettext
 
       # Shortcut for generating JS commands

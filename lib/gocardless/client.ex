@@ -14,8 +14,6 @@ defmodule Gocardless.Client do
   end
 
   def init(_) do
-    IO.inspect(@config, label: "Gocardless Client Config")
-
     {:ok, token} = get_access_token()
 
     {:ok,
@@ -33,11 +31,40 @@ defmodule Gocardless.Client do
     GenServer.call(__MODULE__, [:get_institutions, country])
   end
 
+  @doc """
+  Fetches the list of institutions from the Gocardless API.
+  """
+  def agreement(institution_id, max_historical_days, access_valid_for_days) do
+    GenServer.call(__MODULE__, [
+      :agreement,
+      institution_id,
+      max_historical_days,
+      access_valid_for_days
+    ])
+  end
+
   def handle_call([:get_institutions, country], _from, state) do
     {:ok, s} = refresh_token(state)
-
     institutions = GocardlessApi.get_institutions(s.access_token, country)
     {:reply, institutions, s}
+  end
+
+  def handle_call(
+        [:agreement, institution_id, max_historical_days, access_valid_for_days],
+        _from,
+        state
+      ) do
+    {:ok, s} = refresh_token(state)
+
+    agreement =
+      GocardlessApi.agreement(
+        s.access_token,
+        institution_id,
+        max_historical_days,
+        access_valid_for_days
+      )
+
+    {:reply, agreement, s}
   end
 
   defp get_access_token() do

@@ -2,10 +2,15 @@ defmodule Gocardless.GocardlessApi do
   use Knigge, otp_app: :spendable, default: Gocardless.GocardlessApiImpl
 
   # 1. add an alias for the response module
+  alias Gocardless.GocardlessApi.PostRequisitionResponse
   alias __MODULE__.GetAccessTokenResponse
   alias __MODULE__.RefreshTokenResponse
   alias __MODULE__.GetInstitutionsResponse
-  alias __MODULE__.AgreementsResponse
+  alias __MODULE__.GetInstitutionResponse
+  alias __MODULE__.PostAgreementRequest
+  alias __MODULE__.PostAgreementResponse
+  alias __MODULE__.PostRequisitionRequest
+  alias __MODULE__.PostRequisitionResponse
 
   @type get_access_token_response :: {:ok, GetAccessTokenResponse.t()} | {:error, any()}
   @callback get_access_token(secret_id :: String.t(), secret_key :: String.t()) ::
@@ -19,21 +24,30 @@ defmodule Gocardless.GocardlessApi do
   @callback get_institutions(access_token :: String.t(), country :: String.t()) ::
               {:ok, GetInstitutionsResponse.t()} | {:error, any()}
 
-  @type agreement_response :: {:ok, AgreementsResponse.t()} | {:error, any()}
-  @callback agreement(
+  @type get_institution_response :: {:ok, GetInstitutionResponse.t()} | {:error, any()}
+  @callback get_institution(
               access_token :: String.t(),
-              institution_id :: String.t(),
-              max_historical_days :: integer(),
-              access_valid_for_days :: integer()
+              institution_id :: String.t()
             ) ::
-              {:ok, AgreementsResponse.t()} | {:error, any()}
+              {:ok, GetInstitutionResponse.t()} | {:error, any()}
+
+  @type agreement_response :: {:ok, PostAgreementResponse.t()} | {:error, any()}
+  @callback post_agreement(access_token :: String.t(), PostAgreementRequest.t()) ::
+              {:ok, PostAgreementResponse.t()} | {:error, any()}
+
+  @type requisition_response :: {:ok, PostRequisitionResponse.t()} | {:error, any()}
+  @callback post_requisition(access_token :: String.t(), PostRequisitionRequest.t()) ::
+              {:ok, PostRequisitionResponse.t()} | {:error, any()}
 end
 
 defmodule Gocardless.GocardlessApiImpl do
   alias Gocardless.GocardlessApi.RefreshTokenResponse
   alias Gocardless.GocardlessApi.GetInstitutionsResponse
+  alias Gocardless.GocardlessApi.GetInstitutionResponse
   alias Gocardless.GocardlessApi.GetAccessTokenResponse
-  alias Gocardless.GocardlessApi.AgreementsResponse
+  alias Gocardless.GocardlessApi.PostAgreementResponse
+  alias Gocardless.GocardlessApi.PostRequisitionRequest
+  alias Gocardless.GocardlessApi.PostRequisitionResponse
   @behaviour Gocardless.GocardlessApi
 
   def get_access_token(secret_id, secret_key) do
@@ -99,26 +113,63 @@ defmodule Gocardless.GocardlessApiImpl do
     end
   end
 
-  def agreement(access_token, institution_id, max_historical_days, access_valid_for_days) do
-    "/agreements/enduser/"
+  def get_institution(access_token, id) do
+    "/institutions/#{id}/"
     |> build_request(
       headers: [
         {"Accept", "application/json"},
-        {"Authorization", "Bearer #{access_token}"},
-        {"Content-Type", "application/json"}
-      ],
-      body: %{
-        institution_id: institution_id,
-        max_historical_days: Integer.to_string(max_historical_days),
-        access_valid_for_days: Integer.to_string(access_valid_for_days),
-        access_scope: ["balances", "details", "transactions"]
-      }
+        {"Authorization", "Bearer #{access_token}"}
+      ]
     )
     |> Finch.request(GocardlessApi)
     |> parse_as_json()
     |> case do
       {:ok, json} ->
-        {:ok, AgreementsResponse.new(json)}
+        {:ok, GetInstitutionResponse.new(json)}
+
+      error ->
+        error
+    end
+  end
+
+  def post_requisition(access_token, body) do
+    "/requisitions/"
+    |> build_request(
+      method: :post,
+      headers: [
+        {"Accept", "application/json"},
+        {"Authorization", "Bearer #{access_token}"},
+        {"Content-Type", "application/json"}
+      ],
+      body: body
+    )
+    |> Finch.request(GocardlessApi)
+    |> parse_as_json()
+    |> case do
+      {:ok, json} ->
+        {:ok, PostRequisitionResponse.new(json)}
+
+      error ->
+        error
+    end
+  end
+
+  def post_agreement(access_token, body) do
+    "/agreements/enduser/"
+    |> build_request(
+      method: :post,
+      headers: [
+        {"Accept", "application/json"},
+        {"Authorization", "Bearer #{access_token}"},
+        {"Content-Type", "application/json"}
+      ],
+      body: body
+    )
+    |> Finch.request(GocardlessApi)
+    |> parse_as_json()
+    |> case do
+      {:ok, json} ->
+        {:ok, PostAgreementResponse.new(json)}
 
       error ->
         error

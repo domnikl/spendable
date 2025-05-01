@@ -68,6 +68,10 @@ defmodule SpendableWeb.Router do
       on_mount: [{SpendableWeb.UserAuth, :ensure_authenticated}] do
       live "/users/settings", UserSettingsLive, :edit
       live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
+
+      get "/setup/institution/callback", InstitutionController, :callback
+      get "/setup/institution/:id", InstitutionController, :login
+      live "/setup/institution", InstitutionLive.Index, :index
     end
   end
 

@@ -1,4 +1,4 @@
-defmodule Gocardless.GocardlessApi.AgreementsResponse do
+defmodule Gocardless.GocardlessApi.PostAgreementResponse do
   @type t :: %__MODULE__{
           id: String.t(),
           created: DateTime.t(),

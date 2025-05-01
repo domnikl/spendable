@@ -7,6 +7,9 @@ defmodule Gocardless.Client do
   A module for interacting with the Gocardless API.
   """
 
+  alias Gocardless.GocardlessApi.PostAgreementRequest
+  alias Gocardless.GocardlessApi.PostAgreementResponse
+  alias Gocardless.GocardlessApi.PostRequisitionRequest
   alias Gocardless.GocardlessApi
 
   def start_link(_) do
@@ -32,39 +35,48 @@ defmodule Gocardless.Client do
   end
 
   @doc """
-  Fetches the list of institutions from the Gocardless API.
+  Fetches a specific institution from the Gocardless API.
   """
-  def agreement(institution_id, max_historical_days, access_valid_for_days) do
+  def get_institution(id) do
+    GenServer.call(__MODULE__, [:get_institution, id])
+  end
+
+  @spec create_agreement(PostAgreementRequest.t()) ::
+          {:ok, PostAgreementResponse.t()} | {:error, any()}
+  def create_agreement(body) do
     GenServer.call(__MODULE__, [
-      :agreement,
-      institution_id,
-      max_historical_days,
-      access_valid_for_days
+      :create_agreement,
+      body
+    ])
+  end
+
+  @spec create_requisition(PostRequisitionRequest.t()) ::
+          {:ok, PostAgreementResponse.t()} | {:error, any()}
+  def create_requisition(body) do
+    GenServer.call(__MODULE__, [
+      :create_requisition,
+      body
     ])
   end
 
   def handle_call([:get_institutions, country], _from, state) do
     {:ok, s} = refresh_token(state)
-    institutions = GocardlessApi.get_institutions(s.access_token, country)
-    {:reply, institutions, s}
+    {:reply, GocardlessApi.get_institutions(s.access_token, country), s}
   end
 
-  def handle_call(
-        [:agreement, institution_id, max_historical_days, access_valid_for_days],
-        _from,
-        state
-      ) do
+  def handle_call([:get_institution, id], _from, state) do
     {:ok, s} = refresh_token(state)
+    {:reply, GocardlessApi.get_institution(s.access_token, id), s}
+  end
 
-    agreement =
-      GocardlessApi.agreement(
-        s.access_token,
-        institution_id,
-        max_historical_days,
-        access_valid_for_days
-      )
+  def handle_call([:create_agreement, body], _from, state) do
+    {:ok, s} = refresh_token(state)
+    {:reply, GocardlessApi.post_agreement(s.access_token, body), s}
+  end
 
-    {:reply, agreement, s}
+  def handle_call([:create_requisition, body], _from, state) do
+    {:ok, s} = refresh_token(state)
+    {:reply, GocardlessApi.post_requisition(s.access_token, body), s}
   end
 
   defp get_access_token() do
@@ -72,13 +84,6 @@ defmodule Gocardless.Client do
 
     case response do
       {:ok, token} ->
-        # TODO: remove this
-        token = %{
-          access: token.access,
-          refresh: token.refresh,
-          access_expires: 1
-        }
-
         access_expires = DateTime.add(DateTime.utc_now(), token.access_expires, :second)
 
         {:ok,

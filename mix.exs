@@ -61,7 +61,7 @@ defmodule Spendable.MixProject do
       {:bandit, "~> 1.5"},
       {:mox, "~> 1.0"},
       {:knigge, "~> 1.4"},
-      {:mishka_chelekom, "~> 0.0.4", only: :dev}
+      {:mishka_chelekom, "~> 0.0.5", only: :dev}
     ]
   end
 

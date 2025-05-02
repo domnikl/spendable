@@ -1,12 +1,12 @@
-defmodule Spendable.Accounts do
+defmodule Spendable.Users do
   @moduledoc """
-  The Accounts context.
+  The Users context.
   """
 
   import Ecto.Query, warn: false
   alias Spendable.Repo
 
-  alias Spendable.Accounts.{User, UserToken, UserNotifier}
+  alias Spendable.Users.{User, UserToken, UserNotifier}
 
   ## Database getters
 

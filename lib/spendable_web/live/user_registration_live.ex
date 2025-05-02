@@ -1,8 +1,8 @@
 defmodule SpendableWeb.UserRegistrationLive do
   use SpendableWeb, :live_view
 
-  alias Spendable.Accounts
-  alias Spendable.Accounts.User
+  alias Spendable.Users
+  alias Spendable.Users.User
 
   def render(assigns) do
     ~H"""
@@ -43,7 +43,7 @@ defmodule SpendableWeb.UserRegistrationLive do
   end
 
   def mount(_params, _session, socket) do
-    changeset = Accounts.change_user_registration(%User{})
+    changeset = Users.change_user_registration(%User{})
 
     socket =
       socket
@@ -54,15 +54,15 @@ defmodule SpendableWeb.UserRegistrationLive do
   end
 
   def handle_event("save", %{"user" => user_params}, socket) do
-    case Accounts.register_user(user_params) do
+    case Users.register_user(user_params) do
       {:ok, user} ->
         {:ok, _} =
-          Accounts.deliver_user_confirmation_instructions(
+          Users.deliver_user_confirmation_instructions(
             user,
             &url(~p"/users/confirm/#{&1}")
           )
 
-        changeset = Accounts.change_user_registration(user)
+        changeset = Users.change_user_registration(user)
         {:noreply, socket |> assign(trigger_submit: true) |> assign_form(changeset)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
@@ -71,7 +71,7 @@ defmodule SpendableWeb.UserRegistrationLive do
   end
 
   def handle_event("validate", %{"user" => user_params}, socket) do
-    changeset = Accounts.change_user_registration(%User{}, user_params)
+    changeset = Users.change_user_registration(%User{}, user_params)
     {:noreply, assign_form(socket, Map.put(changeset, :action, :validate))}
   end
 

@@ -41,6 +41,20 @@ defmodule Gocardless.Client do
     GenServer.call(__MODULE__, [:get_institution, id])
   end
 
+  @doc """
+  Fetches a specific account's details from the Gocardless API.
+  """
+  def get_account_details(id) do
+    GenServer.call(__MODULE__, [:get_account_details, id])
+  end
+
+  @doc """
+  Fetches a specific requisition from the Gocardless API.
+  """
+  def get_requisition(id) do
+    GenServer.call(__MODULE__, [:get_requisition, id])
+  end
+
   @spec create_agreement(PostAgreementRequest.t()) ::
           {:ok, PostAgreementResponse.t()} | {:error, any()}
   def create_agreement(body) do
@@ -81,6 +95,16 @@ defmodule Gocardless.Client do
       Map.put(body, :redirect, "#{@config[:redirect_uri]}?reference=#{body.reference}")
 
     {:reply, GocardlessApi.post_requisition(s.access_token, body), s}
+  end
+
+  def handle_call([:get_requisition, id], _from, state) do
+    {:ok, s} = refresh_token(state)
+    {:reply, GocardlessApi.get_requisition(s.access_token, id), s}
+  end
+
+  def handle_call([:get_account_details, id], _from, state) do
+    {:ok, s} = refresh_token(state)
+    {:reply, GocardlessApi.get_account_details(s.access_token, id), s}
   end
 
   defp get_access_token() do

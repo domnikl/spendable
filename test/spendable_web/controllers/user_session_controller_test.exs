@@ -1,7 +1,7 @@
 defmodule SpendableWeb.UserSessionControllerTest do
   use SpendableWeb.ConnCase, async: true
 
-  import Spendable.AccountsFixtures
+  import Spendable.UsersFixtures
 
   setup do
     %{user: user_fixture()}

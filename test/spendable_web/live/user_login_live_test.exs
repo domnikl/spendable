@@ -2,7 +2,7 @@ defmodule SpendableWeb.UserLoginLiveTest do
   use SpendableWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
-  import Spendable.AccountsFixtures
+  import Spendable.UsersFixtures
 
   describe "Log in page" do
     test "renders log in page", %{conn: conn} do

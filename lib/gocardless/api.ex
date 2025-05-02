@@ -11,6 +11,8 @@ defmodule Gocardless.GocardlessApi do
   alias __MODULE__.PostAgreementResponse
   alias __MODULE__.PostRequisitionRequest
   alias __MODULE__.PostRequisitionResponse
+  alias __MODULE__.GetRequisitionResponse
+  alias __MODULE__.GetAccountDetailsResponse
 
   @type get_access_token_response :: {:ok, GetAccessTokenResponse.t()} | {:error, any()}
   @callback get_access_token(secret_id :: String.t(), secret_key :: String.t()) ::
@@ -31,6 +33,13 @@ defmodule Gocardless.GocardlessApi do
             ) ::
               {:ok, GetInstitutionResponse.t()} | {:error, any()}
 
+  @type get_account_details_response :: {:ok, GetAccountDetailsResponse.t()} | {:error, any()}
+  @callback get_account_details(
+              access_token :: String.t(),
+              account_id :: String.t()
+            ) ::
+              {:ok, GetAccountDetailsResponse.t()} | {:error, any()}
+
   @type agreement_response :: {:ok, PostAgreementResponse.t()} | {:error, any()}
   @callback post_agreement(access_token :: String.t(), PostAgreementRequest.t()) ::
               {:ok, PostAgreementResponse.t()} | {:error, any()}
@@ -38,9 +47,18 @@ defmodule Gocardless.GocardlessApi do
   @type requisition_response :: {:ok, PostRequisitionResponse.t()} | {:error, any()}
   @callback post_requisition(access_token :: String.t(), PostRequisitionRequest.t()) ::
               {:ok, PostRequisitionResponse.t()} | {:error, any()}
+
+  @type get_requisition_response :: {:ok, GetRequisitionResponse.t()} | {:error, any()}
+  @callback get_requisition(
+              access_token :: String.t(),
+              requisition_id :: String.t()
+            ) ::
+              {:ok, GetRequisitionResponse.t()} | {:error, any()}
 end
 
 defmodule Gocardless.GocardlessApiImpl do
+  alias Gocardless.GocardlessApi.GetAccountDetailsResponse
+  alias Gocardless.GocardlessApi.GetRequisitionResponse
   alias Gocardless.GocardlessApi.RefreshTokenResponse
   alias Gocardless.GocardlessApi.GetInstitutionsResponse
   alias Gocardless.GocardlessApi.GetInstitutionResponse
@@ -148,6 +166,44 @@ defmodule Gocardless.GocardlessApiImpl do
     |> case do
       {:ok, json} ->
         {:ok, PostRequisitionResponse.new(json)}
+
+      error ->
+        error
+    end
+  end
+
+  def get_requisition(access_token, requisition_id) do
+    "/requisitions/#{requisition_id}/"
+    |> build_request(
+      headers: [
+        {"Accept", "application/json"},
+        {"Authorization", "Bearer #{access_token}"}
+      ]
+    )
+    |> Finch.request(GocardlessApi)
+    |> parse_as_json()
+    |> case do
+      {:ok, json} ->
+        {:ok, GetRequisitionResponse.new(json)}
+
+      error ->
+        error
+    end
+  end
+
+  def get_account_details(access_token, account_id) do
+    "/accounts/#{account_id}/details/"
+    |> build_request(
+      headers: [
+        {"Accept", "application/json"},
+        {"Authorization", "Bearer #{access_token}"}
+      ]
+    )
+    |> Finch.request(GocardlessApi)
+    |> parse_as_json()
+    |> case do
+      {:ok, json} ->
+        {:ok, GetAccountDetailsResponse.new(json)}
 
       error ->
         error

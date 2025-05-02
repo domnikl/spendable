@@ -1,7 +1,7 @@
-defmodule Spendable.Accounts.UserToken do
+defmodule Spendable.Users.UserToken do
   use Ecto.Schema
   import Ecto.Query
-  alias Spendable.Accounts.UserToken
+  alias Spendable.Users.UserToken
 
   @hash_algorithm :sha256
   @rand_size 32
@@ -17,7 +17,7 @@ defmodule Spendable.Accounts.UserToken do
     field :token, :binary
     field :context, :string
     field :sent_to, :string
-    belongs_to :user, Spendable.Accounts.User
+    belongs_to :user, Spendable.Users.User
 
     timestamps(type: :utc_datetime, updated_at: false)
   end

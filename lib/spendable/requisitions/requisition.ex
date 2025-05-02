@@ -9,7 +9,7 @@ defmodule Spendable.Requisitions.Requisition do
     field :name, :string
     field :reference, :string
 
-    belongs_to :user, Spendable.Accounts.User
+    belongs_to :user, Spendable.Users.User
 
     timestamps()
   end

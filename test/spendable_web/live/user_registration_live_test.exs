@@ -2,7 +2,7 @@ defmodule SpendableWeb.UserRegistrationLiveTest do
   use SpendableWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
-  import Spendable.AccountsFixtures
+  import Spendable.UsersFixtures
 
   describe "Registration page" do
     test "renders registration page", %{conn: conn} do

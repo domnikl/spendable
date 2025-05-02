@@ -1,7 +1,7 @@
-defmodule Spendable.AccountsFixtures do
+defmodule Spendable.UsersFixtures do
   @moduledoc """
   This module defines test helpers for creating
-  entities via the `Spendable.Accounts` context.
+  entities via the `Spendable.Users` context.
   """
 
   def unique_user_email, do: "user#{System.unique_integer()}@example.com"
@@ -18,7 +18,7 @@ defmodule Spendable.AccountsFixtures do
     {:ok, user} =
       attrs
       |> valid_user_attributes()
-      |> Spendable.Accounts.register_user()
+      |> Spendable.Users.register_user()
 
     user
   end

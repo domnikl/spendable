@@ -1,7 +1,7 @@
 defmodule SpendableWeb.UserConfirmationInstructionsLive do
   use SpendableWeb, :live_view
 
-  alias Spendable.Accounts
+  alias Spendable.Users
 
   def render(assigns) do
     ~H"""
@@ -33,8 +33,8 @@ defmodule SpendableWeb.UserConfirmationInstructionsLive do
   end
 
   def handle_event("send_instructions", %{"user" => %{"email" => email}}, socket) do
-    if user = Accounts.get_user_by_email(email) do
-      Accounts.deliver_user_confirmation_instructions(
+    if user = Users.get_user_by_email(email) do
+      Users.deliver_user_confirmation_instructions(
         user,
         &url(~p"/users/confirm/#{&1}")
       )

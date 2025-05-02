@@ -1,4 +1,4 @@
-defmodule Spendable.Accounts.UserNotifier do
+defmodule Spendable.Users.UserNotifier do
   import Swoosh.Email
 
   alias Spendable.Mailer

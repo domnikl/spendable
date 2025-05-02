@@ -36,10 +36,11 @@ defmodule SpendableWeb.InstitutionController do
            reference: requisition.reference
          }) do
       {:ok, _} ->
-        conn |> redirect(external: requisition.redirect)
+        conn |> redirect(external: requisition.link)
 
       {:error, _changeset} ->
         conn
+        |> put_flash(:error, "Error creating requisition.")
         |> redirect(to: "/dashboard")
     end
   end

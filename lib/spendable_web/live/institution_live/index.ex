@@ -13,7 +13,7 @@ defmodule SpendableWeb.InstitutionLive.Index do
     ~H"""
     <h1>Institutions</h1>
 
-    <form phx-change="institution_changed">
+    <form phx-change="institution_changed" phx-submit="next">
       <div class="flex flex-col gap-4">
         <.combobox
           name="institution"
@@ -27,7 +27,7 @@ defmodule SpendableWeb.InstitutionLive.Index do
         </.combobox>
 
         <div class="flex flex-col gap-4">
-          <.button disabled={!@next_active} phx-click="next">
+          <.button disabled={!@next_active} type="submit">
             Next
           </.button>
         </div>
@@ -45,9 +45,7 @@ defmodule SpendableWeb.InstitutionLive.Index do
   end
 
   def handle_event("next", _params, socket) do
-    socket
-    |> redirect(external: ~p"/setup/institution/#{socket.assigns.institution_id}")
-
-    {:noreply, socket}
+    id = socket.assigns.institution_id
+    {:noreply, redirect(socket, to: ~p"/setup/institution/#{id}")}
   end
 end

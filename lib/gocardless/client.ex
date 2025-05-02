@@ -76,6 +76,10 @@ defmodule Gocardless.Client do
 
   def handle_call([:create_requisition, body], _from, state) do
     {:ok, s} = refresh_token(state)
+
+    body =
+      Map.put(body, :redirect, "#{@config[:redirect_uri]}?reference=#{body.reference}")
+
     {:reply, GocardlessApi.post_requisition(s.access_token, body), s}
   end
 

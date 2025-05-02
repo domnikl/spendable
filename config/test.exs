@@ -13,6 +13,7 @@ config :spendable, Spendable.Repo,
   password: "postgres",
   hostname: "localhost",
   database: "spendable_test#{System.get_env("MIX_TEST_PARTITION")}",
+  port: 54323,
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2
 

@@ -186,6 +186,8 @@ defmodule Gocardless.GocardlessApiImpl do
         nil
       end
 
+    IO.inspect(request_url, label: "Request URL")
+    IO.inspect(opts[:method], label: "Method")
     IO.inspect(opts[:headers], label: "Headers")
     IO.inspect(body, label: "Body")
 
@@ -198,6 +200,10 @@ defmodule Gocardless.GocardlessApiImpl do
   end
 
   defp parse_as_json({:ok, %Finch.Response{status: 200, body: body}}) do
+    Jason.decode(body)
+  end
+
+  defp parse_as_json({:ok, %Finch.Response{status: 201, body: body}}) do
     Jason.decode(body)
   end
 

@@ -64,14 +64,17 @@ defmodule SpendableWeb.Router do
   scope "/", SpendableWeb do
     pipe_through [:browser, :require_authenticated_user]
 
+    scope "/setup" do
+      get "/institution/callback", InstitutionController, :callback
+      get "/institution/:id", InstitutionController, :login
+    end
+
     live_session :require_authenticated_user,
       on_mount: [{SpendableWeb.UserAuth, :ensure_authenticated}] do
       live "/users/settings", UserSettingsLive, :edit
       live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
-
-      get "/setup/institution/callback", InstitutionController, :callback
-      get "/setup/institution/:id", InstitutionController, :login
-      live "/setup/institution", InstitutionLive.Index, :index
+      live "/setup", InstitutionLive.Index, :index
+      live "/dashboard", DashboardLive.Index, :index
     end
   end
 

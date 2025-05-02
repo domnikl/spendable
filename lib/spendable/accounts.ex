@@ -19,7 +19,17 @@ defmodule Spendable.Accounts do
     Repo.all(
       from a in Account,
         where: a.user_id == ^user.id,
-        order_by: [desc: a.inserted_at]
+        order_by: [desc: a.id]
     )
+  end
+
+  def get_account!(user, account_id) do
+    Repo.get_by!(Account, user_id: user.id, account_id: account_id)
+  end
+
+  def set_active_account(account, active) do
+    account
+    |> Account.active_changeset(%{active: active})
+    |> Repo.update()
   end
 end

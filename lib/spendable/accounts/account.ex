@@ -11,6 +11,7 @@ defmodule Spendable.Accounts.Account do
     field :product, :string
     field :balance, :integer
     field :currency, :string
+    field :active, :boolean, default: true
 
     belongs_to :user, Spendable.Users.User
     belongs_to :requisition, Spendable.Requisitions.Requisition
@@ -23,5 +24,11 @@ defmodule Spendable.Accounts.Account do
     account
     |> cast(attrs, [:account_id, :iban, :bic, :owner_name, :product, :balance, :currency])
     |> validate_required([:account_id, :iban, :bic, :owner_name, :product, :currency])
+  end
+
+  def active_changeset(account, attrs) do
+    account
+    |> cast(attrs, [:active])
+    |> validate_required([:active])
   end
 end

@@ -9,7 +9,7 @@ defmodule SpendableWeb.DashboardLive.Index do
   @impl true
   def render(assigns) do
     ~H"""
-    <h1>Dashboard</h1>
+    <.h1>Dashboard</.h1>
 
     <div class="flex flex-col gap-4">
       <.link href={~p"/setup"}>Setup</.link>

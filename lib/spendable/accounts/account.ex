@@ -1,4 +1,4 @@
-defmodule Spendable.Users.Account do
+defmodule Spendable.Accounts.Account do
   use Ecto.Schema
   import Ecto.Changeset
 
@@ -12,11 +12,14 @@ defmodule Spendable.Users.Account do
     field :balance, :integer
     field :currency, :string
 
+    belongs_to :user, Spendable.Users.User
+    belongs_to :requisition, Spendable.Requisitions.Requisition
+
     timestamps(type: :utc_datetime)
   end
 
   @doc false
-  def changeset(account, attrs) do
+  def create_changeset(account, attrs) do
     account
     |> cast(attrs, [:account_id, :iban, :bic, :owner_name, :product, :balance, :currency])
     |> validate_required([:account_id, :iban, :bic, :owner_name, :product, :currency])

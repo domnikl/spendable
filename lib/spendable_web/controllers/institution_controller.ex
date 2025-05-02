@@ -1,6 +1,7 @@
 defmodule SpendableWeb.InstitutionController do
   use SpendableWeb, :controller
 
+  alias Spendable.Accounts
   alias Spendable.Requisitions
   alias Ecto.UUID
   alias Gocardless.GocardlessApi
@@ -56,51 +57,60 @@ defmodule SpendableWeb.InstitutionController do
         |> redirect(to: "/dashboard")
 
       requisition ->
-        case verify_requisition(requisition) do
-          {:error, _} ->
-            conn
-            |> put_flash(:error, "Error verifying requisition.")
-            |> redirect(to: "/dashboard")
-
+        case verify_requisition(user, requisition) do
           {:ok, _} ->
             conn
             |> put_flash(:info, "Successfully connected.")
+            |> redirect(to: "/dashboard")
+
+          {:error, _} ->
+            conn
+            |> put_flash(:error, "Error verifying requisition.")
             |> redirect(to: "/dashboard")
         end
     end
   end
 
-  defp verify_requisition(requisition) do
+  defp verify_requisition(user, requisition) do
     case Gocardless.Client.get_requisition(requisition.requisition_id) do
       {:ok, r} ->
-        r.accounts |> fetch_and_create_accounts()
+        user |> fetch_and_create_accounts(r.accounts, requisition)
+        requisition |> Requisitions.verify_requisition()
 
       {:error, _} ->
         {:error, "Error fetching requisition"}
     end
-
-    requisition |> Requisitions.verify_requisition()
   end
 
-  defp fetch_and_create_accounts(requisition) do
-    requisition.accounts
+  defp fetch_and_create_accounts(user, account_ids, requisition) do
+    account_ids
     |> Enum.each(fn account_id ->
-      {:ok, account} =
-        Gocardless.Client.get_account_details(account_id)
+      account =
+        case Gocardless.Client.get_account_details(account_id) do
+          {:error, _} ->
+            %{
+              account_id: account_id,
+              iban: "",
+              currency: "EUR",
+              owner_name: "John Doe",
+              product: "Checking Account",
+              bic: "",
+              type: :gocardless
+            }
 
-      account = %{
-        account_id: account_id,
-        iban: account.iban,
-        currency: account.currency,
-        owner_name: account.owner_name,
-        product: account.product,
-        bic: account.bic,
-        requisition_id: requisition.id,
-        user_id: requisition.user_id,
-        type: :gocardless
-      }
+          {:ok, account} ->
+            %{
+              account_id: account_id,
+              iban: account.iban,
+              currency: account.currency,
+              owner_name: account.owner_name,
+              product: account.product,
+              bic: account.bic,
+              type: :gocardless
+            }
+        end
 
-      # TODO: save account to database
+      Accounts.upsert_account(user, requisition, account)
     end)
   end
 end

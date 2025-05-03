@@ -92,3 +92,6 @@ config :spendable, Gocardless.Client,
   environment: :sandbox,
   redirect_uri: "http://localhost:4001/setup/institution/callback",
   base_url: System.get_env("GOCARDLESS_BASE_URL")
+
+# Path to install SaladUI components
+config :salad_ui, components_path: Path.join(File.cwd!(), "lib/spendable_web/components")

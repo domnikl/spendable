@@ -12,6 +12,7 @@ defmodule Spendable.Application do
       Spendable.Repo,
       {DNSCluster, query: Application.get_env(:spendable, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Spendable.PubSub},
+      TwMerge.Cache,
       # Start the Finch HTTP client for sending emails
       {Finch, name: Spendable.Finch},
       {Gocardless.Supervisor, []},

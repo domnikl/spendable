@@ -1,8 +1,7 @@
 defmodule SpendableWeb.AccountsLive.Index do
   use SpendableWeb, :live_view
 
-  import SpendableWeb.Components.Table
-  import SpendableWeb.Components.CheckboxField
+  import SaladUI.Checkbox
 
   @impl true
   def mount(_params, _session, socket) do
@@ -19,39 +18,38 @@ defmodule SpendableWeb.AccountsLive.Index do
   end
 
   @impl true
+  @spec render(any()) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do
     ~H"""
-    <.h1>Accounts</.h1>
+    <.header>Accounts</.header>
 
-    <.table variant="hoverable" color="base" class="mt-5">
-      <:header>Name</:header>
-      <:header>IBAN</:header>
-      <:header>Currency</:header>
-      <:header>Active?</:header>
+    <.table id="accounts-table" rows={@accounts}>
+      <:col :let={account} label="Name" class="">
+        {account.product} {account.owner_name}
+      </:col>
 
-      <.tr :for={account <- @accounts}>
-        <.td>
-          {account.product} {account.owner_name}
-        </.td>
-        <.td>
-          {account.iban}
-        </.td>
-        <.td>
-          {account.currency}
-        </.td>
-        <.td>
-          <.checkbox_field
-            color="primary"
-            name={"active#{account.account_id}"}
-            value="true"
-            checked={account.active}
-            class="mr-2"
+      <:col :let={account} label="IBAN" class="hidden sm:table-cell">
+        {account.iban}
+      </:col>
+      <:col :let={account} label="BIC" class="hidden md:table-cell">
+        {account.bic}
+      </:col>
+      <:col :let={account} label="Currency" class="hidden lg:table-cell">
+        {account.currency}
+      </:col>
+
+      <:col :let={account} label="Active?">
+        <div className="flex items-center space-x-2">
+          <.checkbox
+            id="checked"
+            value={account.active}
             phx-click="toggle_account_active"
             phx-value-account_id={account.account_id}
             phx-value-active={account.active}
           />
-        </.td>
-      </.tr>
+          <.label for="checked"></.label>
+        </div>
+      </:col>
     </.table>
     """
   end

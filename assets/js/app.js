@@ -19,7 +19,6 @@ import "phoenix_html";
 import { Socket } from "phoenix";
 import { LiveSocket } from "phoenix_live_view";
 import topbar from "../vendor/topbar";
-import MishkaComponents from "../vendor/mishka_components.js";
 let csrfToken = document
   .querySelector("meta[name='csrf-token']")
   .getAttribute("content");
@@ -28,9 +27,7 @@ let liveSocket = new LiveSocket("/live", Socket, {
   params: {
     _csrf_token: csrfToken,
   },
-  hooks: {
-    ...MishkaComponents,
-  },
+  hooks: {},
 });
 // Show progress bar on live navigation and form submits
 topbar.config({
@@ -48,3 +45,10 @@ liveSocket.connect();
 // >> liveSocket.enableLatencySim(1000)  // enabled for duration of browser session
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket;
+
+// Allows to execute JS commands from the server
+window.addEventListener("phx:js-exec", ({ detail }) => {
+  document.querySelectorAll(detail.to).forEach((el) => {
+    liveSocket.execJS(el, el.getAttribute(detail.attr));
+  });
+});

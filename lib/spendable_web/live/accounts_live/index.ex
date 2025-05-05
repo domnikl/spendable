@@ -11,7 +11,7 @@ defmodule SpendableWeb.AccountsLive.Index do
 
     socket =
       socket
-      |> assign(:accounts, accounts)
+      |> stream(:accounts, accounts)
       |> assign(:page_title, "Accounts")
 
     {:ok, socket}
@@ -23,23 +23,23 @@ defmodule SpendableWeb.AccountsLive.Index do
     ~H"""
     <.header>Accounts</.header>
 
-    <.table id="accounts-table" rows={@accounts}>
-      <:col :let={account} label="Name" class="">
-        {account.product} {account.owner_name}
+    <.table id="accounts-table" rows={@streams.accounts}>
+      <:col :let={{dom_id, account}} label="Name" class="">
+        <span id={dom_id}>{account.product} {account.owner_name}</span>
       </:col>
 
-      <:col :let={account} label="IBAN" class="hidden sm:table-cell">
-        {account.iban}
+      <:col :let={{dom_id, account}} label="IBAN" class="hidden sm:table-cell">
+        <span id={dom_id}>{account.iban}</span>
       </:col>
-      <:col :let={account} label="BIC" class="hidden md:table-cell">
-        {account.bic}
+      <:col :let={{dom_id, account}} label="BIC" class="hidden md:table-cell">
+        <span id={dom_id}>{account.bic}</span>
       </:col>
-      <:col :let={account} label="Currency" class="hidden lg:table-cell">
-        {account.currency}
+      <:col :let={{dom_id, account}} label="Currency" class="hidden lg:table-cell">
+        <span id={dom_id}>{account.currency}</span>
       </:col>
 
-      <:col :let={account} label="Active?">
-        <div className="flex items-center space-x-2">
+      <:col :let={{dom_id, account}} label="Active?">
+        <div className="flex items-center space-x-2" id={dom_id}>
           <.checkbox
             id="checked"
             value={account.active}
@@ -56,9 +56,6 @@ defmodule SpendableWeb.AccountsLive.Index do
 
   defp toggle_account_active(socket, account_id, active) do
     account = Spendable.Accounts.get_account!(socket.assigns.current_user, account_id)
-
-    IO.inspect(account, label: "Account")
-    IO.inspect(active, label: "Active")
 
     case Spendable.Accounts.set_active_account(account, active) do
       {:ok, _} ->

@@ -128,8 +128,6 @@ defmodule Gocardless.Client do
 
   defp refresh_token(state = %{refresh_token: refresh}) do
     if DateTime.compare(DateTime.utc_now(), state.access_expires) == :gt do
-      IO.inspect(state, label: "Refreshing token")
-
       {:ok, response} = GocardlessApi.refresh_token(refresh)
 
       state = Map.put(state, :access_token, response.access)

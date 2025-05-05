@@ -242,11 +242,6 @@ defmodule Gocardless.GocardlessApiImpl do
         nil
       end
 
-    IO.inspect(request_url, label: "Request URL")
-    IO.inspect(opts[:method], label: "Method")
-    IO.inspect(opts[:headers], label: "Headers")
-    IO.inspect(body, label: "Body")
-
     Finch.build(
       opts[:method] || :get,
       request_url,

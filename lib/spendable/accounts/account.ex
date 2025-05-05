@@ -4,7 +4,7 @@ defmodule Spendable.Accounts.Account do
 
   schema "accounts" do
     field :account_id, :string
-    field :type, Ecto.Enum, values: [:gocardless], default: :gocardless
+    field :type, Ecto.Enum, values: [:gocardless, :manual], default: :gocardless
     field :iban, :string
     field :bic, :string
     field :owner_name, :string

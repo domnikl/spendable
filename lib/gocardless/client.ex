@@ -7,6 +7,7 @@ defmodule Gocardless.Client do
   A module for interacting with the Gocardless API.
   """
 
+  alias Gocardless.GocardlessApi.GetTransactionsResponse
   alias Gocardless.GocardlessApi.PostAgreementRequest
   alias Gocardless.GocardlessApi.PostAgreementResponse
   alias Gocardless.GocardlessApi.PostRequisitionRequest
@@ -73,9 +74,25 @@ defmodule Gocardless.Client do
     ])
   end
 
+  @spec get_transactions(account_id :: String.t()) ::
+          {:ok, GetTransactionsResponse.t()} | {:error, any()}
+  def get_transactions(account_id) do
+    GenServer.call(__MODULE__, [
+      :get_transactions,
+      account_id
+    ])
+  end
+
+  # --- GenServer Callbacks ---
+
   def handle_call([:get_institutions, country], _from, state) do
     {:ok, s} = refresh_token(state)
     {:reply, GocardlessApi.get_institutions(s.access_token, country), s}
+  end
+
+  def handle_call([:get_transactions, account_id], _from, state) do
+    {:ok, s} = refresh_token(state)
+    {:reply, GocardlessApi.get_transactions(s.access_token, account_id), s}
   end
 
   def handle_call([:get_institution, id], _from, state) do

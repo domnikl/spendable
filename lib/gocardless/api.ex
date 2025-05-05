@@ -2,7 +2,8 @@ defmodule Gocardless.GocardlessApi do
   use Knigge, otp_app: :spendable, default: Gocardless.GocardlessApiImpl
 
   # 1. add an alias for the response module
-  alias Gocardless.GocardlessApi.PostRequisitionResponse
+  alias __MODULE__.GetTransactionsResponse
+  alias __MODULE__.PostRequisitionResponse
   alias __MODULE__.GetAccessTokenResponse
   alias __MODULE__.RefreshTokenResponse
   alias __MODULE__.GetInstitutionsResponse
@@ -54,9 +55,17 @@ defmodule Gocardless.GocardlessApi do
               requisition_id :: String.t()
             ) ::
               {:ok, GetRequisitionResponse.t()} | {:error, any()}
+
+  @type get_transactions_response :: {:ok, GetTransactionsResponse.t()} | {:error, any()}
+  @callback get_transactions(
+              access_token :: String.t(),
+              account_id :: String.t()
+            ) ::
+              {:ok, GetTransactionsResponse.t()} | {:error, any()}
 end
 
 defmodule Gocardless.GocardlessApiImpl do
+  alias Gocardless.GocardlessApi.GetTransactionsResponse
   alias Gocardless.GocardlessApi.GetAccountDetailsResponse
   alias Gocardless.GocardlessApi.GetRequisitionResponse
   alias Gocardless.GocardlessApi.RefreshTokenResponse
@@ -185,6 +194,25 @@ defmodule Gocardless.GocardlessApiImpl do
     |> case do
       {:ok, json} ->
         {:ok, GetRequisitionResponse.new(json)}
+
+      error ->
+        error
+    end
+  end
+
+  def get_transactions(access_token, account_id) do
+    "/accounts/#{account_id}/transactions/"
+    |> build_request(
+      headers: [
+        {"Accept", "application/json"},
+        {"Authorization", "Bearer #{access_token}"}
+      ]
+    )
+    |> Finch.request(GocardlessApi)
+    |> parse_as_json()
+    |> case do
+      {:ok, json} ->
+        {:ok, GetTransactionsResponse.new(json)}
 
       error ->
         error

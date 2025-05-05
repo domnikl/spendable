@@ -15,6 +15,15 @@ defmodule Spendable.Accounts do
     )
   end
 
+  def active_gocardless_accounts() do
+    Repo.all(
+      from a in Account,
+        where: a.active == true,
+        where: a.type == ^:gocardless,
+        order_by: [desc: a.id]
+    )
+  end
+
   def list_accounts(user) do
     Repo.all(
       from a in Account,

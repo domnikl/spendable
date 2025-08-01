@@ -47,47 +47,49 @@ defmodule SpendableWeb.DashboardLive.Index do
 
     <div class="flex flex-col gap-8">
       <div>
-        <.header>
-          Unfinalized Transactions
-          <:subtitle>Transactions that need to be split into payments</:subtitle>
-        </.header>
+        <%= if Enum.count(@streams.unfinalized_transactions) > 0 do %>
+          <.header>
+            Unfinalized Transactions
+            <:subtitle>Transactions that need to be split into payments</:subtitle>
+          </.header>
 
-        <.table id="unfinalized-transactions-table" rows={@streams.unfinalized_transactions}>
-          <:col :let={{dom_id, transaction}} label="Date" class="">
-            <span id={dom_id} class="font-mono">
-              {Calendar.strftime(transaction.booking_date, "%Y-%m-%d")}
-            </span>
-          </:col>
+          <.table id="unfinalized-transactions-table" rows={@streams.unfinalized_transactions}>
+            <:col :let={{dom_id, transaction}} label="Date" class="">
+              <span id={dom_id} class="font-mono">
+                {Calendar.strftime(transaction.booking_date, "%Y-%m-%d")}
+              </span>
+            </:col>
 
-          <:col :let={{dom_id, transaction}} label="Description" class="hidden sm:table-cell">
-            <span id={dom_id}>
-              {transaction.counter_name}
-              <%= if transaction.description && transaction.description != "" do %>
-                - {transaction.description}
-              <% end %>
-            </span>
-          </:col>
+            <:col :let={{dom_id, transaction}} label="Description" class="hidden sm:table-cell">
+              <span id={dom_id}>
+                {transaction.counter_name}
+                <%= if transaction.description && transaction.description != "" do %>
+                  - {transaction.description}
+                <% end %>
+              </span>
+            </:col>
 
-          <:col :let={{dom_id, transaction}} label="Amount" class="hidden md:table-cell">
-            <span id={dom_id} class="font-mono">
-              {Number.Currency.number_to_currency(transaction.amount / 100,
-                unit: transaction.currency
-              )}
-            </span>
-          </:col>
+            <:col :let={{dom_id, transaction}} label="Amount" class="hidden md:table-cell">
+              <span id={dom_id} class="font-mono">
+                {Number.Currency.number_to_currency(transaction.amount / 100,
+                  unit: transaction.currency
+                )}
+              </span>
+            </:col>
 
-          <:col :let={{dom_id, transaction}} label="Account" class="hidden lg:table-cell">
-            <span id={dom_id}>{transaction.account.product} {transaction.account.owner_name}</span>
-          </:col>
+            <:col :let={{dom_id, transaction}} label="Account" class="hidden lg:table-cell">
+              <span id={dom_id}>{transaction.account.product} {transaction.account.owner_name}</span>
+            </:col>
 
-          <:col :let={{dom_id, transaction}} label="Actions">
-            <div id={dom_id}>
-              <.link patch={~p"/dashboard/create-payment/#{transaction.id}"}>
-                <.button>Create Payment</.button>
-              </.link>
-            </div>
-          </:col>
-        </.table>
+            <:col :let={{dom_id, transaction}} label="Actions">
+              <div id={dom_id}>
+                <.link patch={~p"/dashboard/create-payment/#{transaction.id}"}>
+                  <.button>Create Payment</.button>
+                </.link>
+              </div>
+            </:col>
+          </.table>
+        <% end %>
       </div>
 
       <div>

@@ -20,7 +20,11 @@ defmodule Spendable.Transactions do
 
   """
   def list_transactions do
-    Repo.all(Transaction)
+    Repo.all(
+      from t in Transaction,
+        order_by: [desc: t.booking_date]
+    )
+    |> Repo.preload(:account)
   end
 
   @doc """
@@ -111,18 +115,12 @@ defmodule Spendable.Transactions do
       {:ok, transactions} = Gocardless.Client.get_transactions(account.account_id)
 
       transactions
-      |> Enum.map(&map_transaction/1)
-      |> Enum.each(fn transaction ->
-        transaction
-        |> Map.put(:account_id, account.account_id)
-        |> Map.put(:user_id, account.user_id)
-        |> create_transaction()
-      end)
+      |> Enum.map(&map_transaction(&1, account))
+      |> Enum.map(&create_transaction/1)
     end
   end
 
-  @spec map_transaction(transaction :: GetTransactionsResponse.t()) :: Transaction.t()
-  defp map_transaction(transaction) do
+  defp map_transaction(transaction, account) do
     amount =
       transaction.transaction_amount.amount
       |> String.replace(".", "")
@@ -137,7 +135,7 @@ defmodule Spendable.Transactions do
         {transaction.creditor_name, transaction.creditor_account.iban}
       end
 
-    %Transaction{
+    %{
       transaction_id: transaction.internal_transaction_id,
       booking_date: transaction.booking_date,
       value_date: transaction.value_date,
@@ -145,7 +143,9 @@ defmodule Spendable.Transactions do
       currency: currency,
       counter_name: name,
       counter_iban: iban,
-      purpose_code: transaction.purpose_code
+      purpose_code: transaction.purpose_code,
+      account_id: account.id,
+      user_id: account.user_id
     }
   end
 end

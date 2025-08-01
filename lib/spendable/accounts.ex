@@ -22,6 +22,7 @@ defmodule Spendable.Accounts do
         where: a.type == ^:gocardless,
         order_by: [desc: a.id]
     )
+    |> Repo.preload(:user)
   end
 
   def list_accounts(user) do

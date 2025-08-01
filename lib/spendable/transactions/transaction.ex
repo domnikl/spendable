@@ -30,7 +30,9 @@ defmodule Spendable.Transactions.Transaction do
       :currency,
       :booking_date,
       :value_date,
-      :purpose_code
+      :purpose_code,
+      :user_id,
+      :account_id
     ])
     |> validate_required([
       :transaction_id,
@@ -40,7 +42,9 @@ defmodule Spendable.Transactions.Transaction do
       :currency,
       :booking_date,
       :value_date,
-      :purpose_code
+      :purpose_code,
+      :user_id,
+      :account_id
     ])
   end
 end

@@ -1,10 +1,5 @@
 <.header>
   Listing Transactions
-  <:actions>
-    <.link patch={~p"/transactions/new"}>
-      <.button>New Transaction</.button>
-    </.link>
-  </:actions>
 </.header>
 
 <.table
@@ -13,12 +8,14 @@
   row_click={fn {_id, transaction} -> JS.navigate(~p"/transactions/#{transaction}") end}
 >
   <:col :let={{_id, transaction}} label="Transaction">{transaction.transaction_id}</:col>
+  <:col :let={{_id, transaction}} label="Account">{transaction.account.product}</:col>
+  <:col :let={{_id, transaction}} label="Owner">{transaction.account.owner_name}</:col>
   <:col :let={{_id, transaction}} label="Counter name">{transaction.counter_name}</:col>
   <:col :let={{_id, transaction}} label="Counter iban">{transaction.counter_iban}</:col>
-  <:col :let={{_id, transaction}} label="Amount">{transaction.amount}</:col>
-  <:col :let={{_id, transaction}} label="Currency">{transaction.currency}</:col>
+  <:col :let={{_id, transaction}} label="Amount">
+    {transaction.amount / 100.0} {transaction.currency}
+  </:col>
   <:col :let={{_id, transaction}} label="Booking date">{transaction.booking_date}</:col>
-  <:col :let={{_id, transaction}} label="Value date">{transaction.value_date}</:col>
   <:col :let={{_id, transaction}} label="Purpose code">{transaction.purpose_code}</:col>
   <:action :let={{_id, transaction}}>
     <div class="sr-only">
@@ -36,7 +33,12 @@
   </:action>
 </.table>
 
-<.modal :if={@live_action in [:new, :edit]} id="transaction-modal" show on_cancel={JS.patch(~p"/transactions")}>
+<.modal
+  :if={@live_action in [:new, :edit]}
+  id="transaction-modal"
+  show
+  on_cancel={JS.patch(~p"/transactions")}
+>
   <.live_component
     module={SpendableWeb.TransactionLive.FormComponent}
     id={@transaction.id || :new}

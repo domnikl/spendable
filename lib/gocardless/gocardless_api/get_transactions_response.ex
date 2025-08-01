@@ -94,6 +94,8 @@ defmodule Gocardless.GocardlessApi.GetTransactionsResponse.Account do
 
   defstruct iban: nil
 
+  def new(nil), do: %__MODULE__{iban: nil}
+
   def new(json_response) do
     %__MODULE__{
       iban: Map.get(json_response, "iban")

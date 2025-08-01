@@ -20,7 +20,7 @@ defmodule SpendableWeb.BudgetsLive.FormComponent do
         phx-submit="save"
       >
         <.input field={@form[:name]} type="text" label="Name" />
-        <.input field={@form[:amount]} type="number" label="Amount (in cents)" />
+        <.input field={@form[:amount]} type="number" label="Amount (in cents)" min="-999999999" />
         <.input field={@form[:due_date]} type="date" label="Due Date" />
         <.input
           field={@form[:interval]}

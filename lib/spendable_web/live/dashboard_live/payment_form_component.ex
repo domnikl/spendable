@@ -24,7 +24,7 @@ defmodule SpendableWeb.DashboardLive.PaymentFormComponent do
         <.input field={@form[:payment_id]} type="text" label="Payment ID" />
         <.input field={@form[:counter_name]} type="text" label="Counter Name" />
         <.input field={@form[:counter_iban]} type="text" label="Counter IBAN" />
-        <.input field={@form[:amount]} type="number" label="Amount (in cents)" />
+        <.input field={@form[:amount]} type="number" label="Amount (in cents)" min="-999999999" />
         <.input field={@form[:currency]} type="text" label="Currency" />
         <.input field={@form[:booking_date]} type="date" label="Booking Date" />
         <.input field={@form[:value_date]} type="date" label="Value Date" />

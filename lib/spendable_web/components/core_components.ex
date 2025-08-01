@@ -600,6 +600,22 @@ defmodule SpendableWeb.CoreComponents do
     """
   end
 
+  @doc """
+  Renders a money amount with proper currency formatting.
+  Negative amounts are displayed in red.
+  """
+  attr :amount, :integer, required: true
+  attr :currency, :string, required: true
+  attr :class, :string, default: "font-mono"
+
+  def money_amount(assigns) do
+    ~H"""
+    <span class={[@class, if(@amount < 0, do: "text-red-600", else: "text-gray-900")]}>
+      {Number.Currency.number_to_currency(@amount / 100, unit: @currency)}
+    </span>
+    """
+  end
+
   ## JS Commands
 
   def show(js \\ %JS{}, selector) do

@@ -75,8 +75,33 @@ defmodule SpendableWeb.BudgetsLive.Index do
       </:col>
 
       <:col :let={{dom_id, budget}} label="Amount" class="hidden sm:table-cell">
-        <span id={dom_id} class="font-mono">
-          {Number.Currency.number_to_currency(budget.amount / 100, unit: budget.account.currency)}
+        <span id={dom_id}>
+          <.money_amount amount={budget.amount} currency={budget.account.currency} />
+        </span>
+      </:col>
+
+      <:col :let={{dom_id, budget}} label="Used" class="hidden md:table-cell">
+        <span id={dom_id}>
+          <.money_amount amount={budget.total_used} currency={budget.account.currency} />
+        </span>
+      </:col>
+
+      <:col :let={{dom_id, budget}} label="Status" class="hidden lg:table-cell">
+        <span id={dom_id}>
+          <%= if budget.amount < 0 and budget.percentage_used do %>
+            <div class="flex items-center space-x-2">
+              <span class="text-sm">
+                {Float.round(budget.percentage_used, 1)}%
+              </span>
+              <%= if budget.percentage_used > 100 do %>
+                <span class="text-red-500">🔴</span>
+              <% else %>
+                <%= if budget.percentage_used > 80 do %>
+                  <span class="text-yellow-500">🟡</span>
+                <% end %>
+              <% end %>
+            </div>
+          <% end %>
         </span>
       </:col>
 

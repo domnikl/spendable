@@ -26,7 +26,7 @@ defmodule Spendable.Budgets.Budget do
     budget
     |> cast(attrs, [:name, :amount, :due_date, :interval, :account_id, :parent_id])
     |> validate_required([:name, :amount, :due_date, :interval, :account_id])
-    |> validate_number(:amount, greater_than: 0)
+    |> validate_number(:amount, greater_than: -999_999_999)
     |> validate_change(:due_date, fn :due_date, due_date ->
       if Date.compare(due_date, Date.utc_today()) in [:gt, :eq] do
         []
@@ -40,7 +40,7 @@ defmodule Spendable.Budgets.Budget do
     budget
     |> cast(attrs, [:name, :amount, :due_date, :interval, :account_id, :parent_id])
     |> validate_required([:name, :amount, :due_date, :interval, :account_id])
-    |> validate_number(:amount, greater_than: 0)
+    |> validate_number(:amount, greater_than: -999_999_999)
     |> validate_change(:due_date, fn :due_date, due_date ->
       if Date.compare(due_date, Date.utc_today()) in [:gt, :eq] do
         []

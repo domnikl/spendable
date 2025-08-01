@@ -53,7 +53,7 @@ defmodule Spendable.Payments.Payment do
       :account_id,
       :user_id
     ])
-    |> validate_number(:amount, greater_than: 0)
+    |> validate_number(:amount, greater_than: -999_999_999)
   end
 
   def create_from_transaction_changeset(payment, transaction, attrs) do
@@ -84,6 +84,6 @@ defmodule Spendable.Payments.Payment do
       :purpose_code,
       :budget_id
     ])
-    |> validate_number(:amount, greater_than: 0)
+    |> validate_number(:amount, greater_than: -999_999_999)
   end
 end

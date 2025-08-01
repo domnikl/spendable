@@ -70,10 +70,8 @@ defmodule SpendableWeb.DashboardLive.Index do
             </:col>
 
             <:col :let={{dom_id, transaction}} label="Amount" class="hidden md:table-cell">
-              <span id={dom_id} class="font-mono">
-                {Number.Currency.number_to_currency(transaction.amount / 100,
-                  unit: transaction.currency
-                )}
+              <span id={dom_id}>
+                <.money_amount amount={transaction.amount} currency={transaction.currency} />
               </span>
             </:col>
 
@@ -115,8 +113,8 @@ defmodule SpendableWeb.DashboardLive.Index do
           </:col>
 
           <:col :let={{dom_id, payment}} label="Amount" class="hidden md:table-cell">
-            <span id={dom_id} class="font-mono">
-              {Number.Currency.number_to_currency(payment.amount / 100, unit: payment.currency)}
+            <span id={dom_id}>
+              <.money_amount amount={payment.amount} currency={payment.currency} />
             </span>
           </:col>
 

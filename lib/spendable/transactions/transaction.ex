@@ -12,9 +12,11 @@ defmodule Spendable.Transactions.Transaction do
     field :value_date, :date
     field :purpose_code, :string
     field :description, :string
+    field :finalized, :boolean, default: false
 
     belongs_to :account, Spendable.Accounts.Account
     belongs_to :user, Spendable.Users.User
+    has_many :payments, Spendable.Payments.Payment
 
     timestamps(type: :utc_datetime)
   end
@@ -31,6 +33,8 @@ defmodule Spendable.Transactions.Transaction do
       :booking_date,
       :value_date,
       :purpose_code,
+      :description,
+      :finalized,
       :user_id,
       :account_id
     ])

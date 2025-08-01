@@ -79,13 +79,13 @@ defmodule SpendableWeb.Router do
       live "/budgets/:id/edit", BudgetsLive.Index, :edit
       live "/setup", InstitutionLive.Index, :index
       live "/dashboard", DashboardLive.Index, :index
+      live "/dashboard/create-payment/:transaction_id", DashboardLive.Index, :create_payment
 
-      live "/transactions", TransactionLive.Index, :index
-      live "/transactions/new", TransactionLive.Index, :new
-      live "/transactions/:id/edit", TransactionLive.Index, :edit
-
-      live "/transactions/:id", TransactionLive.Show, :show
-      live "/transactions/:id/show/edit", TransactionLive.Show, :edit
+      live "/payments", PaymentLive.Index, :index
+      live "/payments/new", PaymentLive.Index, :new
+      live "/payments/:id/edit", PaymentLive.Index, :edit
+      live "/payments/:id", PaymentLive.Show, :show
+      live "/payments/:id/show/edit", PaymentLive.Show, :edit
     end
   end
 

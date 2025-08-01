@@ -26,6 +26,22 @@ defmodule Spendable.Transactions do
     |> Repo.preload(:account)
   end
 
+  def list_unfinalized_transactions(user) do
+    Repo.all(
+      from t in Transaction,
+        where: t.user_id == ^user.id,
+        where: t.finalized == false,
+        order_by: [desc: t.booking_date]
+    )
+    |> Repo.preload(:account)
+  end
+
+  def set_transaction_finalized(transaction, finalized) do
+    transaction
+    |> Ecto.Changeset.change(%{finalized: finalized})
+    |> Repo.update()
+  end
+
   @doc """
   Gets a single transaction.
 

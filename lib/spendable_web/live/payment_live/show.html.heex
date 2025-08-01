@@ -1,0 +1,40 @@
+<.header>
+  Payment {@payment.id}
+  <:subtitle>This is a payment record from your database.</:subtitle>
+  <:actions>
+    <.link patch={~p"/payments/#{@payment}/show/edit"} phx-click={JS.push_focus()}>
+      <.button>Edit payment</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Payment ID">{@payment.payment_id}</:item>
+  <:item title="Date">{@payment.date}</:item>
+  <:item title="Amount">{@payment.amount}</:item>
+  <:item title="Currency">{@payment.currency}</:item>
+  <:item title="Status">{@payment.status}</:item>
+  <:item title="Transaction ID">{@payment.transaction_id}</:item>
+  <:item title="Transaction Amount">{@payment.transaction_amount}</:item>
+  <:item title="Transaction Currency">{@payment.transaction_currency}</:item>
+  <:item title="Transaction Status">{@payment.transaction_status}</:item>
+  <:item title="Transaction Date">{@payment.transaction_date}</:item>
+</.list>
+
+<.back navigate={~p"/payments"}>Back to payments</.back>
+
+<.modal
+  :if={@live_action == :edit}
+  id="payment-modal"
+  show
+  on_cancel={JS.patch(~p"/payments/#{@payment}")}
+>
+  <.live_component
+    module={SpendableWeb.PaymentLive.FormComponent}
+    id={@payment.id}
+    title={@page_title}
+    action={@live_action}
+    payment={@payment}
+    patch={~p"/payments/#{@payment}"}
+  />
+</.modal>

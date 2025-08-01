@@ -1,7 +1,7 @@
-defmodule SpendableWeb.TransactionLive.Show do
+defmodule SpendableWeb.PaymentLive.Show do
   use SpendableWeb, :live_view
 
-  alias Spendable.Transactions
+  alias Spendable.Payments
 
   @impl true
   def mount(_params, _session, socket) do
@@ -13,9 +13,9 @@ defmodule SpendableWeb.TransactionLive.Show do
     {:noreply,
      socket
      |> assign(:page_title, page_title(socket.assigns.live_action))
-     |> assign(:transaction, Transactions.get_transaction!(id))}
+     |> assign(:payment, Payments.get_payment!(id))}
   end
 
-  defp page_title(:show), do: "Show Transaction"
-  defp page_title(:edit), do: "Edit Transaction"
+  defp page_title(:show), do: "Show Payment"
+  defp page_title(:edit), do: "Edit Payment"
 end

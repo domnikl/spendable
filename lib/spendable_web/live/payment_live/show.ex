@@ -13,7 +13,7 @@ defmodule SpendableWeb.PaymentLive.Show do
     {:noreply,
      socket
      |> assign(:page_title, page_title(socket.assigns.live_action))
-     |> assign(:payment, Payments.get_payment!(id))}
+     |> assign(:payment, Payments.get_payment!(socket.assigns.current_user, id))}
   end
 
   defp page_title(:show), do: "Show Payment"

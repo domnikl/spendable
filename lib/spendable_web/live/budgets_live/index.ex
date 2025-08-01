@@ -76,10 +76,7 @@ defmodule SpendableWeb.BudgetsLive.Index do
 
       <:col :let={{dom_id, budget}} label="Amount" class="hidden sm:table-cell">
         <span id={dom_id} class="font-mono">
-          {Number.Currency.number_to_currency(budget.amount / 100,
-            unit: budget.account.currency,
-            precision: 2
-          )}
+          {Number.Currency.number_to_currency(budget.amount / 100, unit: budget.account.currency)}
         </span>
       </:col>
 

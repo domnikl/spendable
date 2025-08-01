@@ -22,8 +22,8 @@
       - {payment.description}
     <% end %>
   </:col>
-  <:col :let={{_id, payment}} label="Amount" class="hidden lg:table-cell">
-    {"#{payment.currency} #{payment.amount / 100}"}
+  <:col :let={{_id, payment}} label="Amount" class="hidden lg:table-cell font-mono">
+    {Number.Currency.number_to_currency(payment.amount / 100, unit: payment.currency)}
   </:col>
   <:col :let={{_id, payment}} label="Budget" class="hidden xl:table-cell">
     {payment.budget.name}

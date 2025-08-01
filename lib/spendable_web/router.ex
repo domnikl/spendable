@@ -74,6 +74,9 @@ defmodule SpendableWeb.Router do
       live "/users/settings", UserSettingsLive, :edit
       live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
       live "/accounts", AccountsLive.Index, :index
+      live "/budgets", BudgetsLive.Index, :index
+      live "/budgets/new", BudgetsLive.Index, :new
+      live "/budgets/:id/edit", BudgetsLive.Index, :edit
       live "/setup", InstitutionLive.Index, :index
       live "/dashboard", DashboardLive.Index, :index
 

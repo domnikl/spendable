@@ -5,7 +5,6 @@ defmodule Spendable.Transactions do
 
   import Ecto.Query, warn: false
   alias Spendable.Accounts
-  alias Gocardless.GocardlessApi.GetTransactionsResponse
   alias Spendable.Repo
 
   alias Spendable.Transactions.Transaction

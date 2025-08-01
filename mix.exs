@@ -61,7 +61,8 @@ defmodule Spendable.MixProject do
       {:bandit, "~> 1.5"},
       {:mox, "~> 1.0"},
       {:knigge, "~> 1.4"},
-      {:salad_ui, "~> 0.14"}
+      {:salad_ui, "~> 0.14"},
+      {:number, "~> 1.0.1"}
     ]
   end
 

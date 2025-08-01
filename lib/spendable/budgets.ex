@@ -9,6 +9,7 @@ defmodule Spendable.Budgets do
       Repo.all(
         from b in Budget,
           where: b.user_id == ^user.id,
+          where: is_nil(b.valid_end_date),
           order_by: [desc: b.id],
           preload: [:account, :parent, :children]
       )
@@ -23,6 +24,7 @@ defmodule Spendable.Budgets do
         from b in Budget,
           where: b.user_id == ^user.id,
           where: b.active == true,
+          where: is_nil(b.valid_end_date),
           order_by: [desc: b.id],
           preload: [:account, :parent, :children]
       )
@@ -48,9 +50,25 @@ defmodule Spendable.Budgets do
   end
 
   def update_budget(budget, attrs) do
-    budget
-    |> Budget.update_changeset(attrs)
-    |> Repo.update()
+    # First, end the current budget version (set to yesterday)
+    {:ok, _} =
+      Repo.update(
+        budget
+        |> Ecto.Changeset.change(%{:valid_end_date => Date.add(Date.utc_today(), -1)})
+      )
+
+    # Create a new budget version with the updated data
+    new_budget_attrs =
+      attrs
+      |> Map.put("valid_start_date", Date.utc_today())
+
+    # Get the user from the original budget
+    user = Repo.get(Spendable.Users.User, budget.user_id)
+
+    %Budget{}
+    |> Budget.create_changeset(new_budget_attrs)
+    |> Ecto.Changeset.put_assoc(:user, user)
+    |> Repo.insert()
   end
 
   def set_active_budget(budget, active) do
@@ -63,11 +81,33 @@ defmodule Spendable.Budgets do
     Repo.delete(budget)
   end
 
+  def get_parent_budgets(user, nil) do
+    Repo.all(
+      from b in Budget,
+        where: b.user_id == ^user.id,
+        where: is_nil(b.parent_id),
+        where: is_nil(b.valid_end_date),
+        order_by: [asc: b.name]
+    )
+  end
+
+  def get_parent_budgets(user, budget_id) do
+    Repo.all(
+      from b in Budget,
+        where: b.user_id == ^user.id,
+        where: is_nil(b.parent_id),
+        where: b.id != ^budget_id,
+        where: is_nil(b.valid_end_date),
+        order_by: [asc: b.name]
+    )
+  end
+
   def get_parent_budgets(user) do
     Repo.all(
       from b in Budget,
         where: b.user_id == ^user.id,
         where: is_nil(b.parent_id),
+        where: is_nil(b.valid_end_date),
         order_by: [asc: b.name]
     )
   end

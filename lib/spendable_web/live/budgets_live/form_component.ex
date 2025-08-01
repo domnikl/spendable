@@ -57,7 +57,7 @@ defmodule SpendableWeb.BudgetsLive.FormComponent do
        to_form(Budgets.change_budget(budget))
      end)
      |> assign(:accounts, get_account_options(assigns.current_user))
-     |> assign(:parent_budgets, get_parent_budget_options(assigns.current_user))}
+     |> assign(:parent_budgets, get_parent_budget_options(assigns.current_user, budget.id))}
   end
 
   @impl true
@@ -72,8 +72,8 @@ defmodule SpendableWeb.BudgetsLive.FormComponent do
 
   defp save_budget(socket, :edit, budget_params) do
     case Budgets.update_budget(socket.assigns.budget, budget_params) do
-      {:ok, budget} ->
-        notify_parent({:saved, budget})
+      {:ok, new_budget} ->
+        notify_parent({:updated, socket.assigns.budget, new_budget})
 
         {:noreply,
          socket
@@ -105,7 +105,13 @@ defmodule SpendableWeb.BudgetsLive.FormComponent do
     |> Enum.map(fn account -> {"#{account.product} - #{account.owner_name}", account.id} end)
   end
 
-  defp get_parent_budget_options(user) do
+  defp get_parent_budget_options(user, budget_id) do
+    [{"None", nil}] ++
+      (Spendable.Budgets.get_parent_budgets(user, budget_id)
+       |> Enum.map(fn budget -> {budget.name, budget.id} end))
+  end
+
+  defp get_parent_budget_options(user, nil) do
     [{"None", nil}] ++
       (Spendable.Budgets.get_parent_budgets(user)
        |> Enum.map(fn budget -> {budget.name, budget.id} end))

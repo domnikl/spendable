@@ -6,6 +6,8 @@ defmodule Spendable.Budgets.Budget do
     field :name, :string
     field :amount, :integer
     field :due_date, :date
+    field :valid_start_date, :date
+    field :valid_end_date, :date
 
     field :interval, Ecto.Enum,
       values: [:monthly, :quarterly, :yearly, :one_time],
@@ -24,7 +26,16 @@ defmodule Spendable.Budgets.Budget do
   @doc false
   def create_changeset(budget, attrs) do
     budget
-    |> cast(attrs, [:name, :amount, :due_date, :interval, :account_id, :parent_id])
+    |> cast(attrs, [
+      :name,
+      :amount,
+      :due_date,
+      :interval,
+      :account_id,
+      :parent_id,
+      :valid_start_date,
+      :valid_end_date
+    ])
     |> validate_required([:name, :amount, :due_date, :interval, :account_id])
     |> validate_number(:amount, greater_than: -999_999_999)
     |> validate_change(:due_date, fn :due_date, due_date ->
@@ -34,11 +45,21 @@ defmodule Spendable.Budgets.Budget do
         [due_date: "must be today or in the future"]
       end
     end)
+    |> put_change(:valid_start_date, Date.utc_today())
   end
 
   def update_changeset(budget, attrs) do
     budget
-    |> cast(attrs, [:name, :amount, :due_date, :interval, :account_id, :parent_id])
+    |> cast(attrs, [
+      :name,
+      :amount,
+      :due_date,
+      :interval,
+      :account_id,
+      :parent_id,
+      :valid_start_date,
+      :valid_end_date
+    ])
     |> validate_required([:name, :amount, :due_date, :interval, :account_id])
     |> validate_number(:amount, greater_than: -999_999_999)
     |> validate_change(:due_date, fn :due_date, due_date ->

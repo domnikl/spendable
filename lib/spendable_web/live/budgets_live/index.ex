@@ -45,8 +45,18 @@ defmodule SpendableWeb.BudgetsLive.Index do
 
   @impl true
   def handle_info({SpendableWeb.BudgetsLive.FormComponent, {:saved, budget}}, socket) do
-    # Use stream_insert with at: -1 to replace existing items with same dom_id
-    {:noreply, stream_insert(socket, :budgets, budget, at: -1)}
+    # For new budgets, insert at the beginning
+    {:noreply, stream_insert(socket, :budgets, budget, at: 0)}
+  end
+
+  @impl true
+  def handle_info(
+        {SpendableWeb.BudgetsLive.FormComponent, {:updated, old_budget, new_budget}},
+        socket
+      ) do
+    # Remove the old budget (which is now inactive) and add the new one
+    socket = stream_delete(socket, :budgets, old_budget)
+    {:noreply, stream_insert(socket, :budgets, new_budget, at: 0)}
   end
 
   @impl true

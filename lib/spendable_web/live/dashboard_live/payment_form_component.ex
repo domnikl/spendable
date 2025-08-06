@@ -18,6 +18,10 @@ defmodule SpendableWeb.DashboardLive.PaymentFormComponent do
           <div>
             <h4 class="font-medium text-blue-900">Transaction Details</h4>
             <p class="text-sm text-blue-700">{@transaction.counter_name}</p>
+            <p class="text-xs text-blue-600 mt-1">IBAN: {@transaction.counter_iban}</p>
+            <p class="text-xs text-blue-600">Payment ID: PAY-{@transaction.transaction_id}</p>
+            <p class="text-xs text-blue-600">Purpose Code: {@transaction.purpose_code}</p>
+            <p class="text-xs text-blue-600">Value Date: {@transaction.value_date}</p>
           </div>
           <div class="text-right">
             <div class="text-lg font-semibold">
@@ -49,14 +53,17 @@ defmodule SpendableWeb.DashboardLive.PaymentFormComponent do
         phx-change="validate"
         phx-submit="save"
       >
-        <.input field={@form[:payment_id]} type="text" label="Payment ID" />
-        <.input field={@form[:counter_name]} type="text" label="Counter Name" />
-        <.input field={@form[:counter_iban]} type="text" label="Counter IBAN" />
-        <.input field={@form[:amount]} type="number" label="Amount (in cents)" min="-999999999" />
-        <.input field={@form[:currency]} type="text" label="Currency" />
+        <.input
+          field={@form[:amount]}
+          type="number"
+          label="Amount (in cents)"
+          min="-999999999"
+          id="payment-amount-input"
+        />
+        <div class="mt-1 text-sm text-gray-600" id="euro-amount-display">
+          Amount: {format_money_amount(@form[:amount].value, @transaction.currency)}
+        </div>
         <.input field={@form[:booking_date]} type="date" label="Booking Date" />
-        <.input field={@form[:value_date]} type="date" label="Value Date" />
-        <.input field={@form[:purpose_code]} type="text" label="Purpose Code" />
         <.input field={@form[:description]} type="text" label="Description" />
         <.input field={@form[:budget_id]} type="select" label="Budget" options={@budgets} />
         <:actions>
@@ -74,14 +81,8 @@ defmodule SpendableWeb.DashboardLive.PaymentFormComponent do
 
     # Prefill form with remaining transaction data
     payment_attrs = %{
-      payment_id: "PAY-#{transaction.transaction_id}",
-      counter_name: transaction.counter_name,
-      counter_iban: transaction.counter_iban,
       amount: transaction_with_remaining.remaining_amount,
-      currency: transaction.currency,
       booking_date: transaction.booking_date,
-      value_date: transaction.value_date,
-      purpose_code: transaction.purpose_code,
       description: transaction.description
     }
 
@@ -92,7 +93,11 @@ defmodule SpendableWeb.DashboardLive.PaymentFormComponent do
      |> assign(
        :form,
        to_form(
-         Payments.change_payment_from_transaction(%Payments.Payment{}, transaction_with_remaining, payment_attrs)
+         Payments.change_payment_from_transaction(
+           %Payments.Payment{},
+           transaction_with_remaining,
+           payment_attrs
+         )
        )
      )
      |> assign(:budgets, get_budget_options(assigns.current_user))}
@@ -129,7 +134,7 @@ defmodule SpendableWeb.DashboardLive.PaymentFormComponent do
          |> push_patch(to: socket.assigns.patch)}
 
       {:error, :exceeds_remaining_amount} ->
-        {:noreply, 
+        {:noreply,
          socket
          |> put_flash(:error, "Payment amount exceeds remaining transaction amount")
          |> assign(form: to_form(socket.assigns.form.source, action: :validate))}
@@ -143,6 +148,22 @@ defmodule SpendableWeb.DashboardLive.PaymentFormComponent do
     Spendable.Budgets.list_active_budgets(user)
     |> Enum.map(fn budget -> {budget.name, budget.id} end)
   end
+
+  defp format_money_amount(nil, currency),
+    do: Number.Currency.number_to_currency(0, unit: currency)
+
+  defp format_money_amount(amount, currency) when is_integer(amount) do
+    Number.Currency.number_to_currency(amount / 100, unit: currency)
+  end
+
+  defp format_money_amount(amount, currency) when is_binary(amount) do
+    case Integer.parse(amount) do
+      {int_amount, _} -> format_money_amount(int_amount, currency)
+      :error -> Number.Currency.number_to_currency(0, unit: currency)
+    end
+  end
+
+  defp format_money_amount(_, currency), do: Number.Currency.number_to_currency(0, unit: currency)
 
   defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
 end

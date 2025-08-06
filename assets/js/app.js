@@ -74,7 +74,11 @@ const BalanceChart = {
               label: function (context) {
                 const value = context.parsed.y;
                 if (value !== null) {
-                  return `${context.dataset.label}: €${value}`;
+                  // Use the custom month property we added to the dataset
+                  const monthName =
+                    context.dataset.month ||
+                    `Month ${context.datasetIndex + 1}`;
+                  return `${monthName}: €${value}`;
                 }
                 return null;
               },
@@ -158,4 +162,16 @@ window.addEventListener("phx:js-exec", ({ detail }) => {
   document.querySelectorAll(detail.to).forEach((el) => {
     liveSocket.execJS(el, el.getAttribute(detail.attr));
   });
+});
+
+// Update money amount display when payment amount changes
+document.addEventListener("input", (event) => {
+  if (event.target.id === "payment-amount-input") {
+    const amountInCents = parseInt(event.target.value) || 0;
+    const amountInCurrency = (amountInCents / 100).toFixed(2);
+    const displayElement = document.getElementById("euro-amount-display");
+    if (displayElement) {
+      displayElement.textContent = `Amount: EUR ${amountInCurrency}`;
+    }
+  }
 });

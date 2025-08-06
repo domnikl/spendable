@@ -14,6 +14,16 @@ defmodule Spendable.Payments do
     )
   end
 
+  def list_recent_payments(user, limit \\ 10) do
+    Repo.all(
+      from p in Payment,
+        where: p.user_id == ^user.id,
+        order_by: [desc: p.booking_date],
+        limit: ^limit,
+        preload: [:transaction, :budget, :account]
+    )
+  end
+
   def get_payment!(user, payment_id) do
     Repo.get_by!(Payment, user_id: user.id, id: payment_id)
     |> Repo.preload([:transaction, :budget, :account])

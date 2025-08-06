@@ -15,6 +15,10 @@ defmodule SpendableWeb.DashboardLive.Index do
       socket.assigns.current_user
       |> Payments.list_payments()
 
+    recent_payments =
+      socket.assigns.current_user
+      |> Payments.list_recent_payments(10)
+
     accounts =
       socket.assigns.current_user
       |> Accounts.list_accounts()
@@ -23,6 +27,7 @@ defmodule SpendableWeb.DashboardLive.Index do
       socket
       |> stream(:unfinalized_transactions, unfinalized_transactions)
       |> stream(:payments, payments)
+      |> stream(:recent_payments, recent_payments)
       |> stream(:accounts, accounts)
       |> assign(:accounts, accounts)
       |> assign(:page_title, "Dashboard")
@@ -217,18 +222,28 @@ defmodule SpendableWeb.DashboardLive.Index do
     <!-- Recent Payments Section -->
       <section class="bg-white rounded-xl border border-gray-200 shadow-sm">
         <div class="px-6 py-5 border-b border-gray-200">
-          <h2 class="text-xl font-semibold text-gray-900 flex items-center">
-            <div class="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-            Recent Payments
-            <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-              {Enum.count(@streams.payments)} total
-            </span>
-          </h2>
-          <p class="mt-1 text-sm text-gray-600">Payments created from transactions</p>
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-xl font-semibold text-gray-900 flex items-center">
+                <div class="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                Recent Payments
+                <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                  {Enum.count(@streams.recent_payments)} of {Enum.count(@streams.payments)} total
+                </span>
+              </h2>
+              <p class="mt-1 text-sm text-gray-600">Latest payments created from transactions</p>
+            </div>
+            <.link
+              navigate={~p"/payments"}
+              class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+            >
+              View All Payments <.icon name="hero-arrow-right" class="ml-2 h-4 w-4" />
+            </.link>
+          </div>
         </div>
         <div class="px-6 pb-6">
           <div class="mt-6">
-            <.table id="payments-table" rows={@streams.payments}>
+            <.table id="recent-payments-table" rows={@streams.recent_payments}>
               <:col :let={{dom_id, payment}} label="Date" class="">
                 <div id={dom_id <> "-date"} class="py-3">
                   <span class="font-mono text-sm text-gray-900">
@@ -302,6 +317,10 @@ defmodule SpendableWeb.DashboardLive.Index do
       socket.assigns.current_user
       |> Payments.list_payments()
 
+    recent_payments =
+      socket.assigns.current_user
+      |> Payments.list_recent_payments(10)
+
     accounts =
       socket.assigns.current_user
       |> Accounts.list_accounts()
@@ -310,6 +329,7 @@ defmodule SpendableWeb.DashboardLive.Index do
      socket
      |> stream(:unfinalized_transactions, unfinalized_transactions, reset: true)
      |> stream(:payments, payments, reset: true)
+     |> stream(:recent_payments, recent_payments, reset: true)
      |> stream(:accounts, accounts, reset: true)}
   end
 end

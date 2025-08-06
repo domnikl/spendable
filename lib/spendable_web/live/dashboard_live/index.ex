@@ -24,6 +24,7 @@ defmodule SpendableWeb.DashboardLive.Index do
       |> stream(:unfinalized_transactions, unfinalized_transactions)
       |> stream(:payments, payments)
       |> stream(:accounts, accounts)
+      |> assign(:accounts, accounts)
       |> assign(:page_title, "Dashboard")
 
     {:ok, socket}
@@ -57,6 +58,14 @@ defmodule SpendableWeb.DashboardLive.Index do
         </.header>
       </div>
       
+    <!-- Balance Chart Section -->
+      <.live_component
+        module={SpendableWeb.DashboardLive.BalanceChartComponent}
+        id="balance-chart"
+        current_user={@current_user}
+        accounts={@accounts}
+      />
+      
     <!-- Account Balances Section -->
       <section class="bg-white rounded-xl border border-gray-200 shadow-sm">
         <div class="px-6 py-5 border-b border-gray-200">
@@ -70,18 +79,20 @@ defmodule SpendableWeb.DashboardLive.Index do
           <div class="mt-6">
             <.table id="accounts-table" rows={@streams.accounts}>
               <:col :let={{dom_id, account}} label="Account" class="">
-                <div id={dom_id} class="py-2">
+                <div id={dom_id <> "-account"} class="py-2">
                   <div class="font-medium text-gray-900">{account.product}</div>
                   <div class="text-sm font-light">{account.owner_name}</div>
                 </div>
               </:col>
 
               <:col :let={{dom_id, account}} label="IBAN" class="hidden md:table-cell">
-                <span id={dom_id} class="font-mono text-sm text-gray-700 py-2">{account.iban}</span>
+                <span id={dom_id <> "-iban"} class="font-mono text-sm text-gray-700 py-2">
+                  {account.iban}
+                </span>
               </:col>
 
               <:col :let={{dom_id, account}} label="Balance" class="text-right">
-                <div id={dom_id} class="py-2">
+                <div id={dom_id <> "-balance"} class="py-2">
                   <%= if account.latest_balance do %>
                     <div class="text-right">
                       <span>
@@ -123,7 +134,7 @@ defmodule SpendableWeb.DashboardLive.Index do
             <div class="mt-6">
               <.table id="unfinalized-transactions-table" rows={@streams.unfinalized_transactions}>
                 <:col :let={{dom_id, transaction}} label="Date" class="">
-                  <div id={dom_id} class="py-3">
+                  <div id={dom_id <> "-date"} class="py-3">
                     <span class="font-mono text-sm text-gray-900">
                       {Calendar.strftime(transaction.booking_date, "%Y-%m-%d")}
                     </span>
@@ -131,7 +142,7 @@ defmodule SpendableWeb.DashboardLive.Index do
                 </:col>
 
                 <:col :let={{dom_id, transaction}} label="Description" class="hidden sm:table-cell">
-                  <div id={dom_id} class="py-3">
+                  <div id={dom_id <> "-description"} class="py-3">
                     <div class="text-sm font-medium text-gray-900">{transaction.counter_name}</div>
                     <%= if transaction.description && transaction.description != "" do %>
                       <div class="text-sm text-gray-600">{transaction.description}</div>
@@ -144,7 +155,7 @@ defmodule SpendableWeb.DashboardLive.Index do
                   label="Amount"
                   class="hidden md:table-cell text-right"
                 >
-                  <div id={dom_id} class="py-3">
+                  <div id={dom_id <> "-amount"} class="py-3">
                     <div class="text-right">
                       <span>
                         <.money_amount
@@ -184,14 +195,14 @@ defmodule SpendableWeb.DashboardLive.Index do
                 </:col>
 
                 <:col :let={{dom_id, transaction}} label="Account" class="hidden lg:table-cell">
-                  <div id={dom_id} class="py-3">
+                  <div id={dom_id <> "-account"} class="py-3">
                     <div class="text-sm text-gray-900">{transaction.account.product}</div>
                     <div class="text-xs text-gray-600">{transaction.account.owner_name}</div>
                   </div>
                 </:col>
 
                 <:col :let={{dom_id, transaction}} label="Actions">
-                  <div id={dom_id} class="py-3">
+                  <div id={dom_id <> "-actions"} class="py-3">
                     <.link patch={~p"/dashboard/create-payment/#{transaction.id}"}>
                       <.button class="bg-amber-600 hover:bg-amber-700">Create Payment</.button>
                     </.link>
@@ -219,7 +230,7 @@ defmodule SpendableWeb.DashboardLive.Index do
           <div class="mt-6">
             <.table id="payments-table" rows={@streams.payments}>
               <:col :let={{dom_id, payment}} label="Date" class="">
-                <div id={dom_id} class="py-3">
+                <div id={dom_id <> "-date"} class="py-3">
                   <span class="font-mono text-sm text-gray-900">
                     {Calendar.strftime(payment.booking_date, "%Y-%m-%d")}
                   </span>
@@ -227,7 +238,7 @@ defmodule SpendableWeb.DashboardLive.Index do
               </:col>
 
               <:col :let={{dom_id, payment}} label="Description" class="hidden sm:table-cell">
-                <div id={dom_id} class="py-3">
+                <div id={dom_id <> "-description"} class="py-3">
                   <div class="text-sm font-medium text-gray-900">{payment.counter_name}</div>
                   <%= if payment.description && payment.description != "" do %>
                     <div class="text-sm text-gray-600">{payment.description}</div>
@@ -236,7 +247,7 @@ defmodule SpendableWeb.DashboardLive.Index do
               </:col>
 
               <:col :let={{dom_id, payment}} label="Amount" class="hidden md:table-cell text-right">
-                <div id={dom_id} class="py-3">
+                <div id={dom_id <> "-amount"} class="py-3">
                   <span>
                     <.money_amount amount={payment.amount} currency={payment.currency} />
                   </span>
@@ -244,7 +255,7 @@ defmodule SpendableWeb.DashboardLive.Index do
               </:col>
 
               <:col :let={{dom_id, payment}} label="Budget" class="hidden lg:table-cell">
-                <div id={dom_id} class="py-3">
+                <div id={dom_id <> "-budget"} class="py-3">
                   <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                     {payment.budget.name}
                   </span>
@@ -252,7 +263,7 @@ defmodule SpendableWeb.DashboardLive.Index do
               </:col>
 
               <:col :let={{dom_id, payment}} label="Account" class="hidden xl:table-cell">
-                <div id={dom_id} class="py-3">
+                <div id={dom_id <> "-account"} class="py-3">
                   <div class="text-sm text-gray-900">{payment.account.product}</div>
                   <div class="text-xs text-gray-600">{payment.account.owner_name}</div>
                 </div>

@@ -350,4 +350,22 @@ defmodule Spendable.Users do
       {:error, :user, changeset, _} -> {:error, changeset}
     end
   end
+
+  @doc """
+  Updates user preferences.
+
+  ## Examples
+
+      iex> update_user_preferences(user, %{preferred_chart_account_id: 123})
+      {:ok, %User{}}
+
+      iex> update_user_preferences(user, %{preferred_chart_account_id: "invalid"})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_user_preferences(user, attrs) do
+    user
+    |> User.preferences_changeset(attrs)
+    |> Repo.update()
+  end
 end

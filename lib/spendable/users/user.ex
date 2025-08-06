@@ -8,6 +8,7 @@ defmodule Spendable.Users.User do
     field :hashed_password, :string, redact: true
     field :current_password, :string, virtual: true, redact: true
     field :confirmed_at, :utc_datetime
+    field :preferred_chart_account_id, :id
 
     timestamps(type: :utc_datetime)
   end
@@ -157,5 +158,13 @@ defmodule Spendable.Users.User do
     else
       add_error(changeset, :current_password, "is not valid")
     end
+  end
+
+  @doc """
+  A user changeset for updating preferences.
+  """
+  def preferences_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:preferred_chart_account_id])
   end
 end

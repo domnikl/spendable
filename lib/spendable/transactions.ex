@@ -30,7 +30,9 @@ defmodule Spendable.Transactions do
     Repo.all(
       from t in Transaction,
         where: t.user_id == ^user.id,
-        where: t.finalized == false or t.finalized_amount < t.amount,
+        where:
+          t.finalized == false or
+            fragment("abs(?)", t.finalized_amount) < fragment("abs(?)", t.amount),
         order_by: [desc: t.booking_date]
     )
     |> Repo.preload(:account)
@@ -63,9 +65,11 @@ defmodule Spendable.Transactions do
 
   @doc """
   Gets the remaining amount that can still be finalized for a transaction.
+  Returns signed amount (negative for expenses, positive for income).
   """
   def get_remaining_amount(transaction) do
-    transaction.amount - transaction.finalized_amount
+    remaining_abs = abs(transaction.amount) - abs(transaction.finalized_amount)
+    if transaction.amount < 0, do: -remaining_abs, else: remaining_abs
   end
 
   @doc """
@@ -81,9 +85,17 @@ defmodule Spendable.Transactions do
   """
   def would_exceed_remaining_amount?(transaction, payment_amount) do
     remaining = get_remaining_amount(transaction)
-    payment_amount = String.to_integer(payment_amount)
 
-    abs(payment_amount) > remaining
+    # Handle both string and integer payment amounts
+    amount_int =
+      case payment_amount do
+        amount when is_integer(amount) -> amount
+        amount when is_binary(amount) -> String.to_integer(amount)
+        _ -> 0
+      end
+
+    # Compare absolute values since both remaining and payment amounts maintain their signs
+    abs(amount_int) > abs(remaining)
   end
 
   @doc """

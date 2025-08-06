@@ -283,6 +283,17 @@ defmodule SpendableWeb.DashboardLive.Index do
                   <div class="text-xs text-gray-600">{payment.account.owner_name}</div>
                 </div>
               </:col>
+
+              <:col :let={{dom_id, payment}} label="Actions" class="text-right">
+                <div id={dom_id <> "-actions"} class="py-3">
+                  <.link
+                    navigate={~p"/payments/#{payment.id}/edit"}
+                    class="inline-flex items-center px-2.5 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    <.icon name="hero-pencil-square" class="h-3 w-3 mr-1" /> Edit
+                  </.link>
+                </div>
+              </:col>
             </.table>
           </div>
         </div>

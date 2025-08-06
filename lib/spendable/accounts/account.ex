@@ -15,6 +15,7 @@ defmodule Spendable.Accounts.Account do
 
     belongs_to :user, Spendable.Users.User
     belongs_to :requisition, Spendable.Requisitions.Requisition
+    has_many :account_balances, Spendable.Accounts.AccountBalance
 
     timestamps(type: :utc_datetime)
   end

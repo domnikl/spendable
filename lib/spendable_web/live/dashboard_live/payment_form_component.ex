@@ -14,6 +14,35 @@ defmodule SpendableWeb.DashboardLive.PaymentFormComponent do
         <:subtitle>Split this transaction into a payment with budget assignment</:subtitle>
       </.header>
 
+      <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div class="flex justify-between items-start">
+          <div>
+            <h4 class="font-medium text-blue-900">Transaction Details</h4>
+            <p class="text-sm text-blue-700">{@transaction.counter_name}</p>
+          </div>
+          <div class="text-right">
+            <div class="text-lg font-semibold">
+              <.money_amount amount={@transaction.amount} currency={@transaction.currency} />
+            </div>
+            <div class="text-sm text-blue-600">Total Amount</div>
+          </div>
+        </div>
+        <div class="mt-3 flex justify-between text-sm">
+          <div>
+            <span class="text-blue-700">Already Finalized:</span>
+            <span class="font-medium ml-1">
+              <.money_amount amount={@transaction.finalized_amount} currency={@transaction.currency} />
+            </span>
+          </div>
+          <div>
+            <span class="text-blue-700">Remaining:</span>
+            <span class="font-medium ml-1 text-green-700">
+              <.money_amount amount={@transaction.remaining_amount} currency={@transaction.currency} />
+            </span>
+          </div>
+        </div>
+      </div>
+
       <.simple_form
         for={@form}
         id="payment-form"
@@ -42,13 +71,14 @@ defmodule SpendableWeb.DashboardLive.PaymentFormComponent do
   @impl true
   def update(%{transaction_id: transaction_id} = assigns, socket) do
     transaction = Transactions.get_transaction!(transaction_id)
+    transaction_with_remaining = Transactions.add_remaining_amount(transaction)
 
-    # Prefill form with transaction data
+    # Prefill form with remaining transaction data
     payment_attrs = %{
       payment_id: "PAY-#{transaction.transaction_id}",
       counter_name: transaction.counter_name,
       counter_iban: transaction.counter_iban,
-      amount: transaction.amount,
+      amount: transaction_with_remaining.remaining_amount,
       currency: transaction.currency,
       booking_date: transaction.booking_date,
       value_date: transaction.value_date,
@@ -59,11 +89,11 @@ defmodule SpendableWeb.DashboardLive.PaymentFormComponent do
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(:transaction, transaction)
+     |> assign(:transaction, transaction_with_remaining)
      |> assign(
        :form,
        to_form(
-         Payments.change_payment_from_transaction(%Payments.Payment{}, transaction, payment_attrs)
+         Payments.change_payment_from_transaction(%Payments.Payment{}, transaction_with_remaining, payment_attrs)
        )
      )
      |> assign(:budgets, get_budget_options(assigns.current_user))}
@@ -92,15 +122,18 @@ defmodule SpendableWeb.DashboardLive.PaymentFormComponent do
            payment_params
          ) do
       {:ok, payment} ->
-        # Mark transaction as finalized
-        {:ok, _} = Transactions.set_transaction_finalized(socket.assigns.transaction, true)
-
         notify_parent({:saved, payment})
 
         {:noreply,
          socket
          |> put_flash(:info, "Payment created successfully")
          |> push_patch(to: socket.assigns.patch)}
+
+      {:error, :exceeds_remaining_amount} ->
+        {:noreply, 
+         socket
+         |> put_flash(:error, "Payment amount exceeds remaining transaction amount")
+         |> assign(form: to_form(socket.assigns.form.source, action: :validate))}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, form: to_form(changeset))}

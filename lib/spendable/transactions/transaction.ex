@@ -13,6 +13,7 @@ defmodule Spendable.Transactions.Transaction do
     field :purpose_code, :string
     field :description, :string
     field :finalized, :boolean, default: false
+    field :finalized_amount, :integer, default: 0
 
     belongs_to :account, Spendable.Accounts.Account
     belongs_to :user, Spendable.Users.User
@@ -35,6 +36,7 @@ defmodule Spendable.Transactions.Transaction do
       :purpose_code,
       :description,
       :finalized,
+      :finalized_amount,
       :user_id,
       :account_id
     ])
@@ -50,5 +52,18 @@ defmodule Spendable.Transactions.Transaction do
       :user_id,
       :account_id
     ])
+    |> validate_finalized_amount()
+  end
+
+  # Custom validation to ensure finalized_amount doesn't exceed total amount
+  defp validate_finalized_amount(changeset) do
+    finalized_amount = get_field(changeset, :finalized_amount) || 0
+    total_amount = get_field(changeset, :amount)
+
+    if total_amount && abs(finalized_amount) > abs(total_amount) do
+      add_error(changeset, :finalized_amount, "cannot exceed transaction amount")
+    else
+      changeset
+    end
   end
 end

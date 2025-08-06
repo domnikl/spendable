@@ -30,16 +30,60 @@ defmodule Spendable.Transactions do
     Repo.all(
       from t in Transaction,
         where: t.user_id == ^user.id,
-        where: t.finalized == false,
+        where: t.finalized == false or t.finalized_amount < t.amount,
         order_by: [desc: t.booking_date]
     )
     |> Repo.preload(:account)
+    |> Enum.map(&add_remaining_amount/1)
   end
 
   def set_transaction_finalized(transaction, finalized) do
     transaction
     |> Ecto.Changeset.change(%{finalized: finalized})
     |> Repo.update()
+  end
+
+  @doc """
+  Adds the specified amount to the transaction's finalized_amount.
+  Returns {:ok, transaction} or {:error, changeset} if validation fails.
+  """
+  def add_finalized_amount(transaction, payment_amount) do
+    new_finalized_amount = transaction.finalized_amount + abs(payment_amount)
+
+    # Check if this would fully finalize the transaction
+    fully_finalized = abs(new_finalized_amount) >= abs(transaction.amount)
+
+    transaction
+    |> Transaction.changeset(%{
+      finalized_amount: new_finalized_amount,
+      finalized: fully_finalized
+    })
+    |> Repo.update()
+  end
+
+  @doc """
+  Gets the remaining amount that can still be finalized for a transaction.
+  """
+  def get_remaining_amount(transaction) do
+    transaction.amount - transaction.finalized_amount
+  end
+
+  @doc """
+  Adds a virtual remaining_amount field to transaction struct.
+  """
+  def add_remaining_amount(transaction) do
+    remaining = get_remaining_amount(transaction)
+    Map.put(transaction, :remaining_amount, remaining)
+  end
+
+  @doc """
+  Checks if the given payment amount would exceed the remaining transaction amount.
+  """
+  def would_exceed_remaining_amount?(transaction, payment_amount) do
+    remaining = get_remaining_amount(transaction)
+    payment_amount = String.to_integer(payment_amount)
+
+    abs(payment_amount) > remaining
   end
 
   @doc """

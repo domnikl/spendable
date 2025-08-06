@@ -34,8 +34,20 @@ defmodule SpendableWeb.AccountsLive.Index do
       <:col :let={{dom_id, account}} label="BIC" class="hidden md:table-cell">
         <span id={dom_id}>{account.bic}</span>
       </:col>
-      <:col :let={{dom_id, account}} label="Currency" class="hidden lg:table-cell">
-        <span id={dom_id}>{account.currency}</span>
+
+      <:col :let={{dom_id, account}} label="Balance" class="">
+        <div id={dom_id}>
+          <%= if account.latest_balance do %>
+            <span>
+              <.money_amount amount={account.latest_balance.amount} currency={account.latest_balance.currency} />
+            </span>
+            <div class="text-xs text-gray-500">
+              {Date.to_string(account.latest_balance.balance_date)}
+            </div>
+          <% else %>
+            <span class="text-gray-400 italic">No balance</span>
+          <% end %>
+        </div>
       </:col>
 
       <:col :let={{dom_id, account}} label="Active?">
@@ -59,9 +71,11 @@ defmodule SpendableWeb.AccountsLive.Index do
 
     case Spendable.Accounts.set_active_account(account, active) do
       {:ok, _} ->
+        updated_accounts = Spendable.Accounts.list_accounts(socket.assigns.current_user)
+
         {:noreply,
          socket
-         |> assign(:accounts, Spendable.Accounts.list_accounts(socket.assigns.current_user))
+         |> stream(:accounts, updated_accounts, reset: true)
          |> put_flash(:info, "Account updated.")}
 
       {:error, _} ->

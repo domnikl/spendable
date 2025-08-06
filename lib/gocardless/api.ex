@@ -14,6 +14,7 @@ defmodule Gocardless.GocardlessApi do
   alias __MODULE__.PostRequisitionResponse
   alias __MODULE__.GetRequisitionResponse
   alias __MODULE__.GetAccountDetailsResponse
+  alias __MODULE__.GetBalancesResponse
 
   @type get_access_token_response :: {:ok, GetAccessTokenResponse.t()} | {:error, any()}
   @callback get_access_token(secret_id :: String.t(), secret_key :: String.t()) ::
@@ -62,11 +63,19 @@ defmodule Gocardless.GocardlessApi do
               account_id :: String.t()
             ) ::
               {:ok, GetTransactionsResponse.t()} | {:error, any()}
+
+  @type get_balances_response :: {:ok, GetBalancesResponse.t()} | {:error, any()}
+  @callback get_balances(
+              access_token :: String.t(),
+              account_id :: String.t()
+            ) ::
+              {:ok, GetBalancesResponse.t()} | {:error, any()}
 end
 
 defmodule Gocardless.GocardlessApiImpl do
   alias Gocardless.GocardlessApi.GetTransactionsResponse
   alias Gocardless.GocardlessApi.GetAccountDetailsResponse
+  alias Gocardless.GocardlessApi.GetBalancesResponse
   alias Gocardless.GocardlessApi.GetRequisitionResponse
   alias Gocardless.GocardlessApi.RefreshTokenResponse
   alias Gocardless.GocardlessApi.GetInstitutionsResponse
@@ -232,6 +241,25 @@ defmodule Gocardless.GocardlessApiImpl do
     |> case do
       {:ok, json} ->
         {:ok, GetAccountDetailsResponse.new(json)}
+
+      error ->
+        error
+    end
+  end
+
+  def get_balances(access_token, account_id) do
+    "/accounts/#{account_id}/balances/"
+    |> build_request(
+      headers: [
+        {"Accept", "application/json"},
+        {"Authorization", "Bearer #{access_token}"}
+      ]
+    )
+    |> Finch.request(GocardlessApi)
+    |> parse_as_json()
+    |> case do
+      {:ok, json} ->
+        {:ok, GetBalancesResponse.new(json)}
 
       error ->
         error

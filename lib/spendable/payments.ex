@@ -1,6 +1,7 @@
 defmodule Spendable.Payments do
   alias Spendable.Repo
   alias Spendable.Payments.Payment
+  alias Spendable.Transactions
 
   import Ecto.Query, warn: false
 
@@ -26,10 +27,33 @@ defmodule Spendable.Payments do
   end
 
   def create_payment_from_transaction(user, transaction, attrs) do
-    %Payment{}
-    |> Payment.create_from_transaction_changeset(transaction, attrs)
-    |> Ecto.Changeset.put_assoc(:user, user)
-    |> Repo.insert()
+    # Check if payment amount would exceed remaining transaction amount
+    payment_amount = Map.get(attrs, "amount") || Map.get(attrs, :amount)
+
+    if payment_amount && Transactions.would_exceed_remaining_amount?(transaction, payment_amount) do
+      {:error, :exceeds_remaining_amount}
+    else
+      Repo.transaction(fn ->
+        # Create the payment
+        case %Payment{}
+             |> Payment.create_from_transaction_changeset(transaction, attrs)
+             |> Ecto.Changeset.put_assoc(:user, user)
+             |> Repo.insert() do
+          {:ok, payment} ->
+            # Update the transaction's finalized amount
+            case Transactions.add_finalized_amount(transaction, payment.amount) do
+              {:ok, _updated_transaction} ->
+                payment
+
+              {:error, changeset} ->
+                Repo.rollback(changeset)
+            end
+
+          {:error, changeset} ->
+            Repo.rollback(changeset)
+        end
+      end)
+    end
   end
 
   def update_payment(payment, attrs) do

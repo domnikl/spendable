@@ -215,6 +215,7 @@ defmodule Spendable.Transactions do
       counter_name: name,
       counter_iban: iban,
       purpose_code: transaction.purpose_code,
+      description: transaction.remittance_information_unstructured,
       account_id: account.id,
       user_id: account.user_id
     }

@@ -2,7 +2,6 @@ defmodule SpendableWeb.PaymentLive.FormComponent do
   use SpendableWeb, :live_component
 
   alias Spendable.Payments
-  alias Spendable.Budgets
 
   @impl true
   def render(assigns) do

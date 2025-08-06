@@ -7,12 +7,17 @@ defmodule Spendable.TransactionsTest do
     alias Spendable.Transactions.Transaction
 
     import Spendable.TransactionsFixtures
+    import Spendable.UsersFixtures
+    import Spendable.AccountsFixtures
 
-    @invalid_attrs %{currency: nil, transaction_id: nil, counter_name: nil, counter_iban: nil, amount: nil, booking_date: nil, value_date: nil, purpose_code: nil}
+    @invalid_attrs %{currency: nil, transaction_id: nil, counter_name: nil, counter_iban: nil, amount: nil, booking_date: nil, value_date: nil, purpose_code: nil, user_id: nil, account_id: nil}
 
     test "list_transactions/0 returns all transactions" do
       transaction = transaction_fixture()
-      assert Transactions.list_transactions() == [transaction]
+      [listed_transaction] = Transactions.list_transactions()
+      assert listed_transaction.id == transaction.id
+      assert listed_transaction.currency == transaction.currency
+      assert listed_transaction.transaction_id == transaction.transaction_id
     end
 
     test "get_transaction!/1 returns the transaction with given id" do
@@ -21,7 +26,23 @@ defmodule Spendable.TransactionsTest do
     end
 
     test "create_transaction/1 with valid data creates a transaction" do
-      valid_attrs = %{currency: "some currency", transaction_id: "some transaction_id", counter_name: "some counter_name", counter_iban: "some counter_iban", amount: 42, booking_date: ~D[2025-05-04], value_date: ~D[2025-05-04], purpose_code: "some purpose_code"}
+      user = user_fixture()
+      account = account_fixture(%{user_id: user.id})
+      
+      valid_attrs = %{
+        currency: "some currency", 
+        transaction_id: "some transaction_id", 
+        counter_name: "some counter_name", 
+        counter_iban: "some counter_iban", 
+        amount: 42, 
+        booking_date: ~D[2025-05-04], 
+        value_date: ~D[2025-05-04], 
+        purpose_code: "some purpose_code",
+        finalized: false,
+        finalized_amount: 0,
+        user_id: user.id,
+        account_id: account.id
+      }
 
       assert {:ok, %Transaction{} = transaction} = Transactions.create_transaction(valid_attrs)
       assert transaction.currency == "some currency"
@@ -32,6 +53,10 @@ defmodule Spendable.TransactionsTest do
       assert transaction.booking_date == ~D[2025-05-04]
       assert transaction.value_date == ~D[2025-05-04]
       assert transaction.purpose_code == "some purpose_code"
+      assert transaction.finalized == false
+      assert transaction.finalized_amount == 0
+      assert transaction.user_id == user.id
+      assert transaction.account_id == account.id
     end
 
     test "create_transaction/1 with invalid data returns error changeset" do

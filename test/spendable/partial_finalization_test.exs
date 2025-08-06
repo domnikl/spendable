@@ -1,9 +1,8 @@
 defmodule Spendable.PartialFinalizationTest do
   use Spendable.DataCase
 
-  alias Spendable.{Transactions, Payments, Budgets, Accounts}
+  alias Spendable.{Transactions, Payments}
   alias Spendable.Transactions.Transaction
-  alias Spendable.Payments.Payment
   
   import Spendable.UsersFixtures
 

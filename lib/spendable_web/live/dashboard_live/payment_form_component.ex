@@ -3,7 +3,6 @@ defmodule SpendableWeb.DashboardLive.PaymentFormComponent do
 
   alias Spendable.Payments
   alias Spendable.Transactions
-  alias Spendable.Budgets
 
   @impl true
   def render(assigns) do

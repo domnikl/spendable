@@ -29,102 +29,102 @@ const BalanceChart = {
     this.chart = null;
     this.updateChart();
   },
-  
+
   updated() {
     this.updateChart();
   },
-  
+
   destroyed() {
     if (this.chart) {
       this.chart.destroy();
     }
   },
-  
+
   updateChart() {
     const chartData = JSON.parse(this.el.dataset.chartData);
-    
+
     if (this.chart) {
       this.chart.destroy();
     }
-    
-    const ctx = document.createElement('canvas');
-    this.el.innerHTML = '';
+
+    const ctx = document.createElement("canvas");
+    this.el.innerHTML = "";
     this.el.appendChild(ctx);
-    
+
     this.chart = new Chart(ctx, {
-      type: 'line',
+      type: "line",
       data: chartData,
       options: {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
           title: {
-            display: false
+            display: false,
           },
           legend: {
-            display: false // We'll use custom legend below
+            display: false, // We'll use custom legend below
           },
           tooltip: {
-            mode: 'index',
+            mode: "index",
             intersect: false,
             callbacks: {
-              title: function(context) {
+              title: function (context) {
                 return `Day ${context[0].label}`;
               },
-              label: function(context) {
+              label: function (context) {
                 const value = context.parsed.y;
                 if (value !== null) {
                   return `${context.dataset.label}: €${value}`;
                 }
                 return null;
-              }
-            }
-          }
+              },
+            },
+          },
         },
         scales: {
           x: {
             title: {
               display: true,
-              text: 'Day of Month'
+              text: "Day of Month",
             },
             grid: {
               display: true,
-              color: 'rgba(0, 0, 0, 0.1)'
-            }
+              color: "rgba(0, 0, 0, 0.1)",
+            },
           },
           y: {
             title: {
               display: true,
-              text: 'Balance (EUR)'
+              text: "Balance (EUR)",
             },
             grid: {
               display: true,
-              color: 'rgba(0, 0, 0, 0.1)'
+              color: "rgba(0, 0, 0, 0.1)",
             },
             ticks: {
-              callback: function(value) {
-                return '€' + value;
-              }
-            }
-          }
+              callback: function (value) {
+                return "€" + value;
+              },
+            },
+          },
         },
         interaction: {
-          mode: 'nearest',
-          axis: 'x',
-          intersect: false
+          mode: "nearest",
+          axis: "x",
+          intersect: false,
         },
         elements: {
           point: {
             radius: 2,
-            hoverRadius: 6
+            hoverRadius: 6,
           },
           line: {
-            tension: 0.4
-          }
-        }
-      }
+            tension: 0.4,
+          },
+        },
+      },
     });
-  }
+  },
 };
 
 let liveSocket = new LiveSocket("/live", Socket, {
@@ -133,7 +133,7 @@ let liveSocket = new LiveSocket("/live", Socket, {
     _csrf_token: csrfToken,
   },
   hooks: {
-    BalanceChart
+    BalanceChart,
   },
 });
 // Show progress bar on live navigation and form submits

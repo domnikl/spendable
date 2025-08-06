@@ -59,7 +59,8 @@ defmodule SpendableWeb.DashboardLive.BalanceChartComponent do
 
     # Get selected account (from user preference or first account)
     selected_account_id =
-      current_user.preferred_chart_account_id ||
+      socket.assigns[:selected_account_id] ||
+        current_user.preferred_chart_account_id ||
         if Enum.empty?(accounts), do: nil, else: hd(accounts).id
 
     if selected_account_id do
@@ -101,18 +102,19 @@ defmodule SpendableWeb.DashboardLive.BalanceChartComponent do
           <%= if not Enum.empty?(@accounts) do %>
             <div class="flex items-center space-x-3">
               <label for="account-select" class="text-sm font-medium text-gray-700">Account:</label>
-              <select
-                id="account-select"
-                phx-change="change_account"
-                phx-target={@myself}
-                class="rounded-md border-gray-300 text-sm focus:border-purple-500 focus:ring-purple-500"
-              >
-                <%= for account <- @accounts do %>
-                  <option value={account.id} selected={account.id == @selected_account_id}>
-                    {account.product} - {account.owner_name}
-                  </option>
-                <% end %>
-              </select>
+              <form phx-change="change_account" phx-target={@myself}>
+                <select
+                  id="account-select"
+                  name="account_id"
+                  class="rounded-md border-gray-300 text-sm focus:border-purple-500 focus:ring-purple-500"
+                >
+                  <%= for account <- @accounts do %>
+                    <option value={account.id} selected={account.id == @selected_account_id}>
+                      {account.product} - {account.owner_name}
+                    </option>
+                  <% end %>
+                </select>
+              </form>
             </div>
           <% end %>
         </div>
@@ -194,7 +196,6 @@ defmodule SpendableWeb.DashboardLive.BalanceChartComponent do
           end)
 
         %{
-          label: format_month_label(month),
           data: data_points,
           borderColor: get_month_color(index),
           backgroundColor: get_month_color(index, 0.1),
@@ -202,7 +203,9 @@ defmodule SpendableWeb.DashboardLive.BalanceChartComponent do
           pointRadius: 2,
           pointHoverRadius: 4,
           # Connect points even when there are null values
-          spanGaps: true
+          spanGaps: true,
+          # Add month info for tooltip but don't use 'label' to avoid legend
+          month: format_month_label(month)
         }
       end)
 

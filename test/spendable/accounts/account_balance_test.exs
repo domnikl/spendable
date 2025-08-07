@@ -7,20 +7,21 @@ defmodule Spendable.Accounts.AccountBalanceTest do
   describe "changeset/2" do
     test "validates required fields" do
       changeset = AccountBalance.changeset(%AccountBalance{}, %{})
-      
+
       assert %{
-        account_id: ["can't be blank"],
-        balance_date: ["can't be blank"],
-        amount: ["can't be blank"],
-        currency: ["can't be blank"]
-      } = errors_on(changeset)
+               account_id: ["can't be blank"],
+               balance_date: ["can't be blank"],
+               amount: ["can't be blank"],
+               currency: ["can't be blank"]
+             } = errors_on(changeset)
     end
 
     test "creates valid changeset with proper attributes" do
       attrs = %{
         account_id: 1,
         balance_date: ~D[2025-01-01],
-        amount: 10050,  # 100.50 in cents
+        # 100.50 in cents
+        amount: 10050,
         currency: "EUR"
       }
 

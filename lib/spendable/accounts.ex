@@ -27,7 +27,7 @@ defmodule Spendable.Accounts do
   end
 
   def list_accounts(user) do
-    accounts = 
+    accounts =
       Repo.all(
         from a in Account,
           where: a.user_id == ^user.id,
@@ -110,7 +110,7 @@ defmodule Spendable.Accounts do
   @doc """
   Gets balance data for chart display for the last 12 months.
   Returns a map with months as keys and daily balance data as values.
-  
+
   Example return:
   %{
     "2024-12" => %{
@@ -124,9 +124,10 @@ defmodule Spendable.Accounts do
   """
   def get_balance_chart_data(account_id) do
     end_date = Date.utc_today()
-    start_date = Date.add(end_date, -365)  # Get 12 months of data
+    # Get 12 months of data
+    start_date = Date.add(end_date, -365)
 
-    balances = 
+    balances =
       Repo.all(
         from ab in AccountBalance,
           where: ab.account_id == ^account_id,
@@ -142,7 +143,7 @@ defmodule Spendable.Accounts do
       "#{date.year}-#{String.pad_leading(Integer.to_string(date.month), 2, "0")}"
     end)
     |> Map.new(fn {month, month_balances} ->
-      daily_data = 
+      daily_data =
         month_balances
         |> Enum.map(fn balance ->
           # Convert cents to euros and round
@@ -150,7 +151,7 @@ defmodule Spendable.Accounts do
           {balance.balance_date.day, euros}
         end)
         |> Map.new()
-      
+
       {month, daily_data}
     end)
   end
@@ -160,10 +161,11 @@ defmodule Spendable.Accounts do
   """
   def get_chart_months() do
     today = Date.utc_today()
-    
+
     0..11
     |> Enum.map(fn months_back ->
-      date = Date.add(today, -months_back * 30)  # Approximate months
+      # Approximate months
+      date = Date.add(today, -months_back * 30)
       "#{date.year}-#{String.pad_leading(Integer.to_string(date.month), 2, "0")}"
     end)
     |> Enum.reverse()

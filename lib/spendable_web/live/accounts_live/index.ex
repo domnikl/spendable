@@ -39,7 +39,10 @@ defmodule SpendableWeb.AccountsLive.Index do
         <div id={dom_id}>
           <%= if account.latest_balance do %>
             <span>
-              <.money_amount amount={account.latest_balance.amount} currency={account.latest_balance.currency} />
+              <.money_amount
+                amount={account.latest_balance.amount}
+                currency={account.latest_balance.currency}
+              />
             </span>
             <div class="text-xs text-gray-500">
               {Date.to_string(account.latest_balance.balance_date)}

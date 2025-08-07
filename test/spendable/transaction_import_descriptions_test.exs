@@ -18,7 +18,8 @@ defmodule Spendable.TransactionImportDescriptionsTest do
         booking_date: "2025-08-06",
         value_date: "2025-08-06",
         transaction_amount: %{
-          amount: "-5000",  # String as returned by API
+          # String as returned by API
+          amount: "-5000",
           currency: "EUR"
         },
         debtor_name: "John Doe",
@@ -26,18 +27,22 @@ defmodule Spendable.TransactionImportDescriptionsTest do
         creditor_name: "Supermarket XYZ",
         creditor_account: %{iban: "DE09876543210987654321"},
         purpose_code: "OTHR",
-        remittance_information_unstructured: "Payment for groceries at Supermarket XYZ, Store Location: Main Street"
+        remittance_information_unstructured:
+          "Payment for groceries at Supermarket XYZ, Store Location: Main Street"
       }
 
       %{user: user, account: account, mock_transaction: mock_transaction}
     end
 
-    test "map_transaction includes description from remittance_information_unstructured", %{account: account, mock_transaction: mock_transaction} do
+    test "map_transaction includes description from remittance_information_unstructured", %{
+      account: account,
+      mock_transaction: mock_transaction
+    } do
       # Access the private map_transaction function through the module's private interface
       # We need to test the mapping logic directly since it's a private function
-      
+
       # Simulate what map_transaction does
-      amount = 
+      amount =
         mock_transaction.transaction_amount.amount
         |> String.replace(".", "")
         |> String.to_integer()
@@ -66,7 +71,9 @@ defmodule Spendable.TransactionImportDescriptionsTest do
       }
 
       # Verify the expected mapping includes description
-      assert expected_attrs.description == "Payment for groceries at Supermarket XYZ, Store Location: Main Street"
+      assert expected_attrs.description ==
+               "Payment for groceries at Supermarket XYZ, Store Location: Main Street"
+
       assert expected_attrs.counter_name == "John Doe"
       assert expected_attrs.amount == -5000
     end
@@ -77,7 +84,7 @@ defmodule Spendable.TransactionImportDescriptionsTest do
         counter_name: "Test Merchant",
         counter_iban: "DE12345678901234567890",
         amount: -2500,
-        currency: "EUR", 
+        currency: "EUR",
         booking_date: Date.utc_today(),
         value_date: Date.utc_today(),
         purpose_code: "OTHR",
@@ -88,30 +95,38 @@ defmodule Spendable.TransactionImportDescriptionsTest do
         account_id: account.id
       }
 
-      assert {:ok, %Transaction{} = transaction} = Transactions.create_transaction(transaction_attrs)
+      assert {:ok, %Transaction{} = transaction} =
+               Transactions.create_transaction(transaction_attrs)
+
       assert transaction.description == "Online purchase at Test Merchant - Order #12345"
       assert transaction.counter_name == "Test Merchant"
       assert transaction.amount == -2500
     end
 
-    test "transaction creation handles nil description gracefully", %{user: user, account: account} do
+    test "transaction creation handles nil description gracefully", %{
+      user: user,
+      account: account
+    } do
       transaction_attrs = %{
         transaction_id: "TEST-NO-DESC-001",
         counter_name: "Test Merchant No Desc",
         counter_iban: "DE12345678901234567890",
         amount: -1500,
-        currency: "EUR", 
+        currency: "EUR",
         booking_date: Date.utc_today(),
         value_date: Date.utc_today(),
         purpose_code: "OTHR",
-        description: nil,  # Explicitly nil
+        # Explicitly nil
+        description: nil,
         finalized: false,
         finalized_amount: 0,
         user_id: user.id,
         account_id: account.id
       }
 
-      assert {:ok, %Transaction{} = transaction} = Transactions.create_transaction(transaction_attrs)
+      assert {:ok, %Transaction{} = transaction} =
+               Transactions.create_transaction(transaction_attrs)
+
       assert transaction.description == nil
       assert transaction.counter_name == "Test Merchant No Desc"
     end
@@ -122,19 +137,23 @@ defmodule Spendable.TransactionImportDescriptionsTest do
         counter_name: "Test Merchant Empty",
         counter_iban: "DE12345678901234567890",
         amount: -1000,
-        currency: "EUR", 
+        currency: "EUR",
         booking_date: Date.utc_today(),
         value_date: Date.utc_today(),
         purpose_code: "OTHR",
-        description: "",  # Empty string
+        # Empty string
+        description: "",
         finalized: false,
         finalized_amount: 0,
         user_id: user.id,
         account_id: account.id
       }
 
-      assert {:ok, %Transaction{} = transaction} = Transactions.create_transaction(transaction_attrs)
-      assert transaction.description == nil  # Ecto converts empty strings to nil
+      assert {:ok, %Transaction{} = transaction} =
+               Transactions.create_transaction(transaction_attrs)
+
+      # Ecto converts empty strings to nil
+      assert transaction.description == nil
       assert transaction.counter_name == "Test Merchant Empty"
     end
   end

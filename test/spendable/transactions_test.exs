@@ -10,7 +10,18 @@ defmodule Spendable.TransactionsTest do
     import Spendable.UsersFixtures
     import Spendable.AccountsFixtures
 
-    @invalid_attrs %{currency: nil, transaction_id: nil, counter_name: nil, counter_iban: nil, amount: nil, booking_date: nil, value_date: nil, purpose_code: nil, user_id: nil, account_id: nil}
+    @invalid_attrs %{
+      currency: nil,
+      transaction_id: nil,
+      counter_name: nil,
+      counter_iban: nil,
+      amount: nil,
+      booking_date: nil,
+      value_date: nil,
+      purpose_code: nil,
+      user_id: nil,
+      account_id: nil
+    }
 
     test "list_transactions/0 returns all transactions" do
       transaction = transaction_fixture()
@@ -28,15 +39,15 @@ defmodule Spendable.TransactionsTest do
     test "create_transaction/1 with valid data creates a transaction" do
       user = user_fixture()
       account = account_fixture(%{user_id: user.id})
-      
+
       valid_attrs = %{
-        currency: "some currency", 
-        transaction_id: "some transaction_id", 
-        counter_name: "some counter_name", 
-        counter_iban: "some counter_iban", 
-        amount: 42, 
-        booking_date: ~D[2025-05-04], 
-        value_date: ~D[2025-05-04], 
+        currency: "some currency",
+        transaction_id: "some transaction_id",
+        counter_name: "some counter_name",
+        counter_iban: "some counter_iban",
+        amount: 42,
+        booking_date: ~D[2025-05-04],
+        value_date: ~D[2025-05-04],
         purpose_code: "some purpose_code",
         finalized: false,
         finalized_amount: 0,
@@ -65,9 +76,21 @@ defmodule Spendable.TransactionsTest do
 
     test "update_transaction/2 with valid data updates the transaction" do
       transaction = transaction_fixture()
-      update_attrs = %{currency: "some updated currency", transaction_id: "some updated transaction_id", counter_name: "some updated counter_name", counter_iban: "some updated counter_iban", amount: 43, booking_date: ~D[2025-05-05], value_date: ~D[2025-05-05], purpose_code: "some updated purpose_code"}
 
-      assert {:ok, %Transaction{} = transaction} = Transactions.update_transaction(transaction, update_attrs)
+      update_attrs = %{
+        currency: "some updated currency",
+        transaction_id: "some updated transaction_id",
+        counter_name: "some updated counter_name",
+        counter_iban: "some updated counter_iban",
+        amount: 43,
+        booking_date: ~D[2025-05-05],
+        value_date: ~D[2025-05-05],
+        purpose_code: "some updated purpose_code"
+      }
+
+      assert {:ok, %Transaction{} = transaction} =
+               Transactions.update_transaction(transaction, update_attrs)
+
       assert transaction.currency == "some updated currency"
       assert transaction.transaction_id == "some updated transaction_id"
       assert transaction.counter_name == "some updated counter_name"
@@ -80,7 +103,10 @@ defmodule Spendable.TransactionsTest do
 
     test "update_transaction/2 with invalid data returns error changeset" do
       transaction = transaction_fixture()
-      assert {:error, %Ecto.Changeset{}} = Transactions.update_transaction(transaction, @invalid_attrs)
+
+      assert {:error, %Ecto.Changeset{}} =
+               Transactions.update_transaction(transaction, @invalid_attrs)
+
       assert transaction == Transactions.get_transaction!(transaction.id)
     end
 

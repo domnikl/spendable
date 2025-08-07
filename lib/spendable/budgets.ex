@@ -4,30 +4,50 @@ defmodule Spendable.Budgets do
 
   import Ecto.Query, warn: false
 
-  def list_budgets(user) do
-    budgets =
-      Repo.all(
-        from b in Budget,
-          where: b.user_id == ^user.id,
-          where: is_nil(b.valid_end_date),
-          order_by: [desc: b.id],
-          preload: [:account, :parent, :children]
-      )
+  def list_budgets(user, account_id \\ nil) do
+    base_query =
+      from b in Budget,
+        where: b.user_id == ^user.id,
+        where: is_nil(b.valid_end_date),
+        order_by: [
+          asc: fragment("CASE WHEN ? IS NULL THEN 0 ELSE 1 END", b.parent_id),
+          asc: fragment("COALESCE(?, ?)", b.parent_id, b.id),
+          asc: b.name
+        ],
+        preload: [:account, :parent, :children]
+
+    query =
+      case account_id do
+        nil -> base_query
+        account_id -> from b in base_query, where: b.account_id == ^account_id
+      end
+
+    budgets = Repo.all(query)
 
     # Calculate usage for each budget
     Enum.map(budgets, &calculate_budget_usage/1)
   end
 
-  def list_active_budgets(user) do
-    budgets =
-      Repo.all(
-        from b in Budget,
-          where: b.user_id == ^user.id,
-          where: b.active == true,
-          where: is_nil(b.valid_end_date),
-          order_by: [desc: b.id],
-          preload: [:account, :parent, :children]
-      )
+  def list_active_budgets(user, account_id \\ nil) do
+    base_query =
+      from b in Budget,
+        where: b.user_id == ^user.id,
+        where: b.active == true,
+        where: is_nil(b.valid_end_date),
+        order_by: [
+          asc: fragment("CASE WHEN ? IS NULL THEN 0 ELSE 1 END", b.parent_id),
+          asc: fragment("COALESCE(?, ?)", b.parent_id, b.id),
+          asc: b.name
+        ],
+        preload: [:account, :parent, :children]
+
+    query =
+      case account_id do
+        nil -> base_query
+        account_id -> from b in base_query, where: b.account_id == ^account_id
+      end
+
+    budgets = Repo.all(query)
 
     # Calculate usage for each budget
     Enum.map(budgets, &calculate_budget_usage/1)

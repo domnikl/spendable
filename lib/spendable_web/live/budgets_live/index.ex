@@ -5,17 +5,32 @@ defmodule SpendableWeb.BudgetsLive.Index do
 
   alias Spendable.Budgets
   alias Spendable.Budgets.Budget
+  alias Spendable.Accounts
 
   @impl true
   def mount(_params, _session, socket) do
-    budgets =
-      socket.assigns.current_user
-      |> Spendable.Budgets.list_budgets()
+    user = socket.assigns.current_user
+    accounts = Accounts.list_accounts(user)
+
+    # Use user's preferred chart account or first account as default, or nil for all accounts
+    default_account_id =
+      user.preferred_chart_account_id ||
+        accounts
+        |> List.first()
+        |> case do
+          nil -> nil
+          account -> account.id
+        end
+
+    # Always load active budgets initially, then filter by account if needed
+    budgets = Budgets.list_active_budgets(user, default_account_id)
 
     socket =
       socket
       |> stream(:budgets, budgets, dom_id: &"budget-#{&1.id}")
       |> assign(:page_title, "Budgets")
+      |> assign(:accounts, accounts)
+      |> assign(:selected_account_id, default_account_id)
 
     {:ok, socket}
   end
@@ -66,9 +81,29 @@ defmodule SpendableWeb.BudgetsLive.Index do
     <.header>
       Budgets
       <:actions>
-        <.link patch={~p"/budgets/new"}>
-          <.button>New Budget</.button>
-        </.link>
+        <div class="flex items-center gap-4">
+          <div class="flex items-center gap-2">
+            <label for="account-filter" class="text-sm font-medium text-gray-700">Account:</label>
+            <form phx-change="filter_by_account">
+              <select
+                id="account-filter"
+                name="account_id"
+                value={@selected_account_id}
+                class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              >
+                <option value="">All Accounts</option>
+                <%= for account <- @accounts do %>
+                  <option value={account.id}>
+                    {account.product} - {account.owner_name}
+                  </option>
+                <% end %>
+              </select>
+            </form>
+          </div>
+          <.link patch={~p"/budgets/new"}>
+            <.button>New Budget</.button>
+          </.link>
+        </div>
       </:actions>
     </.header>
 
@@ -175,9 +210,13 @@ defmodule SpendableWeb.BudgetsLive.Index do
 
     case Spendable.Budgets.set_active_budget(budget, active) do
       {:ok, _} ->
+        # Refresh budgets with current account filter
+        budgets =
+          Budgets.list_active_budgets(socket.assigns.current_user, socket.assigns.selected_account_id)
+
         {:noreply,
          socket
-         |> assign(:budgets, Spendable.Budgets.list_budgets(socket.assigns.current_user))
+         |> stream(:budgets, budgets, reset: true, dom_id: &"budget-#{&1.id}")
          |> put_flash(:info, "Budget updated.")}
 
       {:error, _} ->
@@ -197,5 +236,31 @@ defmodule SpendableWeb.BudgetsLive.Index do
   @impl true
   def handle_event("toggle_budget_active", %{"budget_id" => budget_id}, socket) do
     socket |> toggle_budget_active(budget_id, false)
+  end
+
+  @impl true
+  def handle_event("filter_by_account", %{"account_id" => ""}, socket) do
+    # Show all active budgets when "All Accounts" is selected
+    budgets = Budgets.list_active_budgets(socket.assigns.current_user)
+
+    socket =
+      socket
+      |> assign(:selected_account_id, nil)
+      |> stream(:budgets, budgets, reset: true, dom_id: &"budget-#{&1.id}")
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("filter_by_account", %{"account_id" => account_id}, socket) do
+    account_id = String.to_integer(account_id)
+    budgets = Budgets.list_active_budgets(socket.assigns.current_user, account_id)
+
+    socket =
+      socket
+      |> assign(:selected_account_id, account_id)
+      |> stream(:budgets, budgets, reset: true, dom_id: &"budget-#{&1.id}")
+
+    {:noreply, socket}
   end
 end

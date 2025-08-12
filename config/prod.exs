@@ -13,6 +13,16 @@ config :swoosh, api_client: Swoosh.ApiClient.Finch, finch_name: Spendable.Finch
 # Disable Swoosh Local Memory Storage
 config :swoosh, local: false
 
+# Configure esbuild for production with external Chart.js
+config :esbuild,
+  version: "0.17.11",
+  spendable: [
+    args:
+      ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/* --external:chart.js/auto),
+    cd: Path.expand("../assets", __DIR__),
+    env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
+  ]
+
 # Do not print debug messages in production
 config :logger, level: :info
 

@@ -12,8 +12,8 @@ defmodule SpendableWeb.BudgetsLive.Index do
     user = socket.assigns.current_user
     accounts = Accounts.list_accounts(user)
 
-    # Always start by showing all active budgets on initial load
-    budgets = Budgets.list_active_budgets(user)
+    # Always start by showing all budgets on initial load
+    budgets = Budgets.list_budgets(user)
 
     socket =
       socket
@@ -99,7 +99,7 @@ defmodule SpendableWeb.BudgetsLive.Index do
 
     <.table id="budgets-table" rows={@streams.budgets}>
       <:col :let={{dom_id, budget}} label="Name" class="">
-        <span id={dom_id}>
+        <span id={dom_id <> "-name"}>
           <%= if budget.parent do %>
             <.link patch={~p"/budgets/#{budget.parent.id}/edit"}>{budget.parent.name}</.link>
             <span class="text-gray-400"> → </span>
@@ -110,19 +110,19 @@ defmodule SpendableWeb.BudgetsLive.Index do
       </:col>
 
       <:col :let={{dom_id, budget}} label="Amount" class="hidden sm:table-cell">
-        <span id={dom_id}>
+        <span id={dom_id <> "-amount"}>
           <.money_amount amount={budget.amount} currency={budget.account.currency} />
         </span>
       </:col>
 
       <:col :let={{dom_id, budget}} label="Used" class="hidden md:table-cell">
-        <span id={dom_id}>
+        <span id={dom_id <> "-used"}>
           <.money_amount amount={budget.total_used} currency={budget.account.currency} />
         </span>
       </:col>
 
       <:col :let={{dom_id, budget}} label="Status" class="hidden lg:table-cell">
-        <span id={dom_id}>
+        <span id={dom_id <> "-status"}>
           <%= if budget.amount < 0 and budget.percentage_used do %>
             <div class="flex items-center space-x-2">
               <span class="text-sm">
@@ -141,25 +141,25 @@ defmodule SpendableWeb.BudgetsLive.Index do
       </:col>
 
       <:col :let={{dom_id, budget}} label="Account" class="hidden md:table-cell">
-        <span id={dom_id}>{budget.account.product} {budget.account.owner_name}</span>
+        <span id={dom_id <> "-account"}>{budget.account.product} {budget.account.owner_name}</span>
       </:col>
 
       <:col :let={{dom_id, budget}} label="Due Date" class="hidden lg:table-cell">
-        <span id={dom_id}>
+        <span id={dom_id <> "-due-date"}>
           {Calendar.strftime(budget.due_date, "%Y-%m-%d")}
         </span>
       </:col>
 
       <:col :let={{dom_id, budget}} label="Interval" class="hidden xl:table-cell">
-        <span id={dom_id} class="capitalize">
+        <span id={dom_id <> "-interval"} class="capitalize">
           {String.replace(to_string(budget.interval), "_", " ")}
         </span>
       </:col>
 
       <:col :let={{dom_id, budget}} label="Active?">
-        <div className="flex items-center space-x-2" id={dom_id}>
+        <div className="flex items-center space-x-2">
           <.checkbox
-            id="checked"
+            id={dom_id <> "-checked"}
             value={budget.active}
             phx-click="toggle_budget_active"
             phx-value-budget_id={budget.id}
@@ -170,7 +170,7 @@ defmodule SpendableWeb.BudgetsLive.Index do
       </:col>
 
       <:col :let={{dom_id, budget}} label="Actions">
-        <div id={dom_id}>
+        <div id={dom_id <> "-actions"}>
           <.link patch={~p"/budgets/#{budget.id}/edit"} class="">Edit</.link>
         </div>
       </:col>
@@ -202,7 +202,7 @@ defmodule SpendableWeb.BudgetsLive.Index do
       {:ok, _} ->
         # Refresh budgets with current account filter
         budgets =
-          Budgets.list_active_budgets(
+          Budgets.list_budgets(
             socket.assigns.current_user,
             socket.assigns.selected_account_id
           )
@@ -234,7 +234,7 @@ defmodule SpendableWeb.BudgetsLive.Index do
   @impl true
   def handle_event("filter_by_account", %{"account_id" => ""}, socket) do
     # Show all active budgets when "All Accounts" is selected
-    budgets = Budgets.list_active_budgets(socket.assigns.current_user)
+    budgets = Budgets.list_budgets(socket.assigns.current_user)
 
     socket =
       socket
@@ -247,7 +247,7 @@ defmodule SpendableWeb.BudgetsLive.Index do
   @impl true
   def handle_event("filter_by_account", %{"account_id" => account_id}, socket) do
     account_id = String.to_integer(account_id)
-    budgets = Budgets.list_active_budgets(socket.assigns.current_user, account_id)
+    budgets = Budgets.list_budgets(socket.assigns.current_user, account_id)
 
     socket =
       socket

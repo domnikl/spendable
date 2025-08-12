@@ -170,4 +170,80 @@ defmodule Spendable.Accounts do
     end)
     |> Enum.reverse()
   end
+
+  @doc """
+  Calculates balance predictions from today to the end of next month based on active budgets.
+  Returns a map with predicted balance for each day.
+  """
+  def get_balance_predictions(account_id, user_id) do
+    # Get current balance
+    account = Repo.get!(Account, account_id)
+    current_balance = get_latest_balance(account)
+
+    if current_balance do
+      # Get active budgets for this account
+      active_budgets = get_active_budgets_for_account(account_id, user_id)
+
+      # Calculate daily spending rate
+      daily_spending = calculate_daily_spending_from_budgets(active_budgets)
+
+      # Generate predictions from today to end of next month
+      today = Date.utc_today()
+      # Next month end
+      end_date = Date.end_of_month(Date.add(today, 32))
+
+      generate_daily_predictions(current_balance.amount, daily_spending, today, end_date)
+    else
+      %{}
+    end
+  end
+
+  defp get_active_budgets_for_account(account_id, user_id) do
+    Repo.all(
+      from b in Spendable.Budgets.Budget,
+        where: b.account_id == ^account_id,
+        where: b.user_id == ^user_id,
+        where: b.active == true,
+        where: is_nil(b.valid_end_date)
+    )
+  end
+
+  defp calculate_daily_spending_from_budgets(budgets) do
+    budgets
+    |> Enum.reduce(0, fn budget, acc ->
+      daily_amount =
+        case budget.interval do
+          :daily -> abs(budget.amount)
+          :weekly -> abs(budget.amount) / 7
+          :monthly -> abs(budget.amount) / 30
+          :yearly -> abs(budget.amount) / 365
+          _ -> 0
+        end
+
+      acc + daily_amount
+    end)
+  end
+
+  defp generate_daily_predictions(starting_balance, daily_spending, start_date, end_date) do
+    start_date
+    |> Date.range(end_date)
+    |> Enum.with_index()
+    |> Enum.map(fn {date, days_from_start} ->
+      # Calculate predicted balance (spending reduces balance)
+      predicted_balance = starting_balance - daily_spending * days_from_start
+      predicted_euros = Float.round(predicted_balance / 100.0)
+
+      month_key = "#{date.year}-#{String.pad_leading(Integer.to_string(date.month), 2, "0")}"
+      {month_key, date.day, predicted_euros}
+    end)
+    |> Enum.group_by(fn {month_key, _day, _balance} -> month_key end)
+    |> Map.new(fn {month_key, month_data} ->
+      daily_data =
+        month_data
+        |> Enum.map(fn {_month_key, day, balance} -> {day, balance} end)
+        |> Map.new()
+
+      {month_key, daily_data}
+    end)
+  end
 end

@@ -65,20 +65,43 @@ defmodule SpendableWeb.DashboardLive.BalanceChartComponent do
 
     if selected_account_id do
       chart_data = Accounts.get_balance_chart_data(selected_account_id)
+      prediction_data = Accounts.get_balance_predictions(selected_account_id, current_user.id)
       all_months = Accounts.get_chart_months()
 
-      # Default to showing last 3 months
-      default_visible_months = Enum.take(all_months, -3)
+      # Include current and next month in the months list for predictions
+      today = Date.utc_today()
+
+      current_month =
+        "#{today.year}-#{String.pad_leading(Integer.to_string(today.month), 2, "0")}"
+
+      next_month_date = Date.add(today, 32)
+
+      next_month =
+        "#{next_month_date.year}-#{String.pad_leading(Integer.to_string(next_month_date.month), 2, "0")}"
+
+      extended_months =
+        all_months
+        |> Enum.concat([current_month, next_month])
+        |> Enum.uniq()
+        |> Enum.sort()
+
+      # Default to showing last 3 months plus predictions
+      default_visible_months =
+        extended_months
+        # Show more months to include predictions
+        |> Enum.take(-4)
 
       socket
       |> assign(:selected_account_id, selected_account_id)
       |> assign(:chart_data, chart_data)
-      |> assign(:all_months, all_months)
+      |> assign(:prediction_data, prediction_data)
+      |> assign(:all_months, extended_months)
       |> assign_new(:visible_months, fn -> default_visible_months end)
     else
       socket
       |> assign(:selected_account_id, nil)
       |> assign(:chart_data, %{})
+      |> assign(:prediction_data, %{})
       |> assign(:all_months, [])
       |> assign(:visible_months, [])
     end
@@ -155,7 +178,9 @@ defmodule SpendableWeb.DashboardLive.BalanceChartComponent do
             <div
               id="balance-chart"
               phx-hook="BalanceChart"
-              data-chart-data={Jason.encode!(prepare_chart_data(@chart_data, @visible_months))}
+              data-chart-data={
+                Jason.encode!(prepare_chart_data(@chart_data, @prediction_data, @visible_months))
+              }
               class="w-full h-80"
             >
               <!-- Fallback for when JS is not loaded -->
@@ -173,6 +198,14 @@ defmodule SpendableWeb.DashboardLive.BalanceChartComponent do
                 <span class="text-sm text-gray-600">{format_month_label(month)}</span>
               </div>
             <% end %>
+            
+    <!-- Prediction Legend -->
+            <%= unless Enum.empty?(@prediction_data) do %>
+              <div class="flex items-center">
+                <div class="w-3 h-0.5 bg-red-500 mr-2" style="border-top: 2px dashed #ef4444;"></div>
+                <span class="text-sm text-gray-600">Budget Prediction</span>
+              </div>
+            <% end %>
           </div>
         <% end %>
       </div>
@@ -180,9 +213,9 @@ defmodule SpendableWeb.DashboardLive.BalanceChartComponent do
     """
   end
 
-  defp prepare_chart_data(chart_data, visible_months) do
-    # Prepare data for Chart.js
-    datasets =
+  defp prepare_chart_data(chart_data, prediction_data, visible_months) do
+    # Prepare historical data for Chart.js
+    historical_datasets =
       visible_months
       |> Enum.with_index()
       |> Enum.map(fn {month, index} ->
@@ -209,9 +242,42 @@ defmodule SpendableWeb.DashboardLive.BalanceChartComponent do
         }
       end)
 
+    # Prepare prediction datasets (only for months that have predictions)
+    prediction_datasets =
+      visible_months
+      |> Enum.filter(fn month -> Map.has_key?(prediction_data, month) end)
+      |> Enum.with_index()
+      |> Enum.map(fn {month, _index} ->
+        monthly_predictions = Map.get(prediction_data, month, %{})
+
+        # Generate prediction data points for all days 1-31
+        prediction_points =
+          1..31
+          |> Enum.map(fn day ->
+            Map.get(monthly_predictions, day, nil)
+          end)
+
+        %{
+          data: prediction_points,
+          # Red for predictions
+          borderColor: "rgba(255, 99, 132, 0.8)",
+          backgroundColor: "rgba(255, 99, 132, 0.1)",
+          tension: 0.4,
+          pointRadius: 1,
+          pointHoverRadius: 3,
+          # Dashed line for predictions
+          borderDash: [5, 5],
+          spanGaps: true,
+          month: "#{format_month_label(month)} (Predicted)"
+        }
+      end)
+
+    # Combine historical and prediction datasets
+    all_datasets = historical_datasets ++ prediction_datasets
+
     %{
       labels: Enum.to_list(1..31),
-      datasets: datasets
+      datasets: all_datasets
     }
   end
 

@@ -12,25 +12,15 @@ defmodule SpendableWeb.BudgetsLive.Index do
     user = socket.assigns.current_user
     accounts = Accounts.list_accounts(user)
 
-    # Use user's preferred chart account or first account as default, or nil for all accounts
-    default_account_id =
-      user.preferred_chart_account_id ||
-        accounts
-        |> List.first()
-        |> case do
-          nil -> nil
-          account -> account.id
-        end
-
-    # Always load active budgets initially, then filter by account if needed
-    budgets = Budgets.list_active_budgets(user, default_account_id)
+    # Always start by showing all active budgets on initial load
+    budgets = Budgets.list_active_budgets(user)
 
     socket =
       socket
       |> stream(:budgets, budgets, dom_id: &"budget-#{&1.id}")
       |> assign(:page_title, "Budgets")
       |> assign(:accounts, accounts)
-      |> assign(:selected_account_id, default_account_id)
+      |> assign(:selected_account_id, nil)
 
     {:ok, socket}
   end
@@ -212,7 +202,10 @@ defmodule SpendableWeb.BudgetsLive.Index do
       {:ok, _} ->
         # Refresh budgets with current account filter
         budgets =
-          Budgets.list_active_budgets(socket.assigns.current_user, socket.assigns.selected_account_id)
+          Budgets.list_active_budgets(
+            socket.assigns.current_user,
+            socket.assigns.selected_account_id
+          )
 
         {:noreply,
          socket

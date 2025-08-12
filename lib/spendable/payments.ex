@@ -5,14 +5,96 @@ defmodule Spendable.Payments do
 
   import Ecto.Query, warn: false
 
-  def list_payments(user) do
-    Repo.all(
+  def list_payments(user, page \\ 1, per_page \\ 25, filters \\ %{}) do
+    offset = (page - 1) * per_page
+
+    base_query =
       from p in Payment,
         where: p.user_id == ^user.id,
         order_by: [desc: p.booking_date],
         preload: [:transaction, :budget, :account]
-    )
+
+    query = apply_filters(base_query, filters)
+
+    # Add pagination
+    paginated_query =
+      from p in query,
+        limit: ^per_page,
+        offset: ^offset
+
+    payments = Repo.all(paginated_query)
+
+    # Get total count with filters applied
+    count_query =
+      apply_filters(
+        from(p in Payment, where: p.user_id == ^user.id, select: count(p.id)),
+        filters
+      )
+
+    total_count = Repo.one(count_query)
+
+    %{
+      payments: payments,
+      total_count: total_count,
+      page: page,
+      per_page: per_page,
+      total_pages: ceil(total_count / per_page)
+    }
   end
+
+  defp apply_filters(query, filters) do
+    Enum.reduce(filters, query, fn {key, value}, acc ->
+      apply_filter(acc, key, value)
+    end)
+  end
+
+  defp apply_filter(query, :account_id, nil), do: query
+
+  defp apply_filter(query, :account_id, account_id) do
+    from p in query, where: p.account_id == ^account_id
+  end
+
+  defp apply_filter(query, :budget_id, nil), do: query
+
+  defp apply_filter(query, :budget_id, budget_id) do
+    from p in query, where: p.budget_id == ^budget_id
+  end
+
+  defp apply_filter(query, :date_from, nil), do: query
+
+  defp apply_filter(query, :date_from, date_from) do
+    from p in query, where: p.booking_date >= ^date_from
+  end
+
+  defp apply_filter(query, :date_to, nil), do: query
+
+  defp apply_filter(query, :date_to, date_to) do
+    from p in query, where: p.booking_date <= ^date_to
+  end
+
+  defp apply_filter(query, :search, nil), do: query
+  defp apply_filter(query, :search, ""), do: query
+
+  defp apply_filter(query, :search, search_term) do
+    search_pattern = "%#{search_term}%"
+
+    from p in query,
+      where: ilike(p.counter_name, ^search_pattern) or ilike(p.description, ^search_pattern)
+  end
+
+  defp apply_filter(query, :amount_min, nil), do: query
+
+  defp apply_filter(query, :amount_min, amount_min) do
+    from p in query, where: p.amount >= ^amount_min
+  end
+
+  defp apply_filter(query, :amount_max, nil), do: query
+
+  defp apply_filter(query, :amount_max, amount_max) do
+    from p in query, where: p.amount <= ^amount_max
+  end
+
+  defp apply_filter(query, _key, _value), do: query
 
   def list_recent_payments(user, limit \\ 10) do
     Repo.all(

@@ -11,9 +11,11 @@ defmodule SpendableWeb.DashboardLive.Index do
       socket.assigns.current_user
       |> Transactions.list_unfinalized_transactions()
 
-    payments =
+    payments_result =
       socket.assigns.current_user
-      |> Payments.list_payments()
+      |> Payments.list_payments(1, 25, %{})
+
+    payments = payments_result.payments
 
     recent_payments =
       socket.assigns.current_user
@@ -30,6 +32,7 @@ defmodule SpendableWeb.DashboardLive.Index do
       |> stream(:recent_payments, recent_payments)
       |> stream(:accounts, accounts)
       |> assign(:accounts, accounts)
+      |> assign(:total_payments_count, payments_result.total_count)
       |> assign(:page_title, "Dashboard")
 
     {:ok, socket}
@@ -228,7 +231,7 @@ defmodule SpendableWeb.DashboardLive.Index do
                 <div class="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
                 Recent Payments
                 <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                  {Enum.count(@streams.recent_payments)} of {Enum.count(@streams.payments)} total
+                  {Enum.count(@streams.recent_payments)} of {@total_payments_count} total
                 </span>
               </h2>
               <p class="mt-1 text-sm text-gray-600">Latest payments created from transactions</p>
@@ -324,9 +327,11 @@ defmodule SpendableWeb.DashboardLive.Index do
       socket.assigns.current_user
       |> Transactions.list_unfinalized_transactions()
 
-    payments =
+    payments_result =
       socket.assigns.current_user
-      |> Payments.list_payments()
+      |> Payments.list_payments(1, 25, %{})
+
+    payments = payments_result.payments
 
     recent_payments =
       socket.assigns.current_user
@@ -341,6 +346,7 @@ defmodule SpendableWeb.DashboardLive.Index do
      |> stream(:unfinalized_transactions, unfinalized_transactions, reset: true)
      |> stream(:payments, payments, reset: true)
      |> stream(:recent_payments, recent_payments, reset: true)
-     |> stream(:accounts, accounts, reset: true)}
+     |> stream(:accounts, accounts, reset: true)
+     |> assign(:total_payments_count, payments_result.total_count)}
   end
 end

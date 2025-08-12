@@ -7,6 +7,155 @@
   </:actions>
 </.header>
 
+<!-- Filter Form -->
+<div class="bg-white rounded-lg border border-gray-200 shadow-sm mb-6">
+  <div class="px-6 py-4">
+    <h3 class="text-lg font-medium text-gray-900 mb-4">Filter Payments</h3>
+    <form phx-change="filter_payments">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <!-- Account Filter -->
+        <div>
+          <label for="account_id" class="block text-sm font-medium text-gray-700 mb-1">
+            Account
+          </label>
+          <select
+            id="account_id"
+            name="account_id"
+            value={Map.get(@filters, :account_id, "")}
+            class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          >
+            <option value="">All Accounts</option>
+            <%= for account <- @accounts do %>
+              <option value={account.id}>
+                {account.product} - {account.owner_name}
+              </option>
+            <% end %>
+          </select>
+        </div>
+        
+<!-- Budget Filter -->
+        <div>
+          <label for="budget_id" class="block text-sm font-medium text-gray-700 mb-1">
+            Budget
+          </label>
+          <select
+            id="budget_id"
+            name="budget_id"
+            value={Map.get(@filters, :budget_id, "")}
+            class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          >
+            <option value="">All Budgets</option>
+            <%= for budget <- @budgets do %>
+              <option value={budget.id}>
+                <%= if budget.parent do %>
+                  {budget.parent.name} → {budget.name}
+                <% else %>
+                  {budget.name}
+                <% end %>
+              </option>
+            <% end %>
+          </select>
+        </div>
+        
+<!-- Date From Filter -->
+        <div>
+          <label for="date_from" class="block text-sm font-medium text-gray-700 mb-1">
+            Date From
+          </label>
+          <input
+            type="date"
+            id="date_from"
+            name="date_from"
+            value={
+              case Map.get(@filters, :date_from) do
+                %Date{} = date -> Date.to_iso8601(date)
+                _ -> ""
+              end
+            }
+            class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          />
+        </div>
+        
+<!-- Date To Filter -->
+        <div>
+          <label for="date_to" class="block text-sm font-medium text-gray-700 mb-1">
+            Date To
+          </label>
+          <input
+            type="date"
+            id="date_to"
+            name="date_to"
+            value={
+              case Map.get(@filters, :date_to) do
+                %Date{} = date -> Date.to_iso8601(date)
+                _ -> ""
+              end
+            }
+            class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          />
+        </div>
+        
+<!-- Search Filter -->
+        <div>
+          <label for="search" class="block text-sm font-medium text-gray-700 mb-1">
+            Search Description
+          </label>
+          <input
+            type="text"
+            id="search"
+            name="search"
+            value={Map.get(@filters, :search, "")}
+            placeholder="Search counter name or description..."
+            class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          />
+        </div>
+        
+<!-- Amount Min Filter -->
+        <div>
+          <label for="amount_min" class="block text-sm font-medium text-gray-700 mb-1">
+            Min Amount (cents)
+          </label>
+          <input
+            type="number"
+            id="amount_min"
+            name="amount_min"
+            value={Map.get(@filters, :amount_min, "")}
+            placeholder="0"
+            class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          />
+        </div>
+        
+<!-- Amount Max Filter -->
+        <div>
+          <label for="amount_max" class="block text-sm font-medium text-gray-700 mb-1">
+            Max Amount (cents)
+          </label>
+          <input
+            type="number"
+            id="amount_max"
+            name="amount_max"
+            value={Map.get(@filters, :amount_max, "")}
+            placeholder="999999"
+            class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          />
+        </div>
+        
+<!-- Clear Filters Button -->
+        <div class="flex items-end">
+          <button
+            type="button"
+            phx-click="filter_payments"
+            phx-value-clear="true"
+            class="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            Clear Filters
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
 <.table
   id="payments"
   rows={@streams.payments}
@@ -28,7 +177,7 @@
   <:col :let={{_id, payment}} label="Budget" class="hidden xl:table-cell">
     {payment.budget.name}
   </:col>
-  <:col :let={{_id, payment}} label="Account" class="hidden 2xl:table-cell">
+  <:col :let={{_id, payment}} label="Account" class="hidden lg:table-cell">
     {payment.account.product} {payment.account.owner_name}
   </:col>
   <:action :let={{_id, payment}}>
@@ -46,6 +195,129 @@
     </.link>
   </:action>
 </.table>
+
+<%= if @pagination.total_pages > 1 do %>
+  <div class="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
+    <div class="flex justify-between flex-1 sm:hidden">
+      <%= if @pagination.page > 1 do %>
+        <button
+          phx-click="paginate"
+          phx-value-page={@pagination.page - 1}
+          class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+        >
+          Previous
+        </button>
+      <% else %>
+        <button
+          disabled
+          class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-300 bg-white border border-gray-200 rounded-md cursor-not-allowed"
+        >
+          Previous
+        </button>
+      <% end %>
+
+      <%= if @pagination.page < @pagination.total_pages do %>
+        <button
+          phx-click="paginate"
+          phx-value-page={@pagination.page + 1}
+          class="relative inline-flex items-center px-4 py-2 ml-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+        >
+          Next
+        </button>
+      <% else %>
+        <button
+          disabled
+          class="relative inline-flex items-center px-4 py-2 ml-3 text-sm font-medium text-gray-300 bg-white border border-gray-200 rounded-md cursor-not-allowed"
+        >
+          Next
+        </button>
+      <% end %>
+    </div>
+
+    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+      <div>
+        <p class="text-sm text-gray-700">
+          Showing
+          <span class="font-medium">{(@pagination.page - 1) * @pagination.per_page + 1}</span>
+          to
+          <span class="font-medium">
+            {min(@pagination.page * @pagination.per_page, @pagination.total_count)}
+          </span>
+          of <span class="font-medium">{@pagination.total_count}</span>
+          results
+        </p>
+      </div>
+      <div>
+        <nav class="relative z-0 inline-flex shadow-sm -space-x-px" aria-label="Pagination">
+          <%= if @pagination.page > 1 do %>
+            <button
+              phx-click="paginate"
+              phx-value-page={@pagination.page - 1}
+              class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+            >
+              <span class="sr-only">Previous</span>
+              <svg
+                class="w-5 h-5"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </button>
+          <% end %>
+
+          <%= for page_num <- max(1, @pagination.page - 2)..min(@pagination.total_pages, @pagination.page + 2) do %>
+            <%= if page_num == @pagination.page do %>
+              <button
+                disabled
+                class="relative z-10 inline-flex items-center px-4 py-2 border border-indigo-500 bg-indigo-50 text-sm font-medium text-indigo-600"
+              >
+                {page_num}
+              </button>
+            <% else %>
+              <button
+                phx-click="paginate"
+                phx-value-page={page_num}
+                class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                {page_num}
+              </button>
+            <% end %>
+          <% end %>
+
+          <%= if @pagination.page < @pagination.total_pages do %>
+            <button
+              phx-click="paginate"
+              phx-value-page={@pagination.page + 1}
+              class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+            >
+              <span class="sr-only">Next</span>
+              <svg
+                class="w-5 h-5"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </button>
+          <% end %>
+        </nav>
+      </div>
+    </div>
+  </div>
+<% end %>
 
 <.modal
   :if={@live_action in [:new, :edit]}

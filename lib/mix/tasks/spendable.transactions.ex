@@ -16,8 +16,8 @@ defmodule Mix.Tasks.Spendable.Transactions do
 
   @impl Mix.Task
   def run(_args) do
-    Mix.shell().info("Fetching transactions...")
+    IO.puts("Fetching transactions...")
     Transactions.import_transactions()
-    Mix.shell().info("Transactions fetched successfully.")
+    IO.puts("Transactions fetched successfully.")
   end
 end

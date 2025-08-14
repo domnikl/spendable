@@ -18,14 +18,14 @@ defmodule Mix.Tasks.Spendable.Balances do
 
   @impl Mix.Task
   def run(_args) do
-    Mix.shell().info("Importing account balances...")
+    IO.puts("Importing account balances...")
 
     case import_balances() do
       {:ok, count} ->
-        Mix.shell().info("Successfully imported balances for #{count} accounts.")
+        IO.puts("Successfully imported balances for #{count} accounts.")
 
       {:error, reason} ->
-        Mix.shell().error("Failed to import balances: #{inspect(reason)}")
+        IO.puts(:stderr, "Failed to import balances: #{inspect(reason)}")
     end
   end
 
@@ -33,7 +33,7 @@ defmodule Mix.Tasks.Spendable.Balances do
     accounts = Accounts.active_gocardless_accounts()
 
     if Enum.empty?(accounts) do
-      Mix.shell().info("No active GoCardless accounts found.")
+      IO.puts(:stderr, "No active GoCardless accounts found.")
       {:ok, 0}
     else
       results =
@@ -50,7 +50,7 @@ defmodule Mix.Tasks.Spendable.Balances do
   end
 
   defp import_account_balance(account) do
-    Mix.shell().info("Importing balance for account: #{account.account_id}")
+    IO.puts("Importing balance for account: #{account.account_id}")
 
     with {:ok, token} <- get_access_token(),
          {:ok, balance_response} <- GocardlessApi.get_balances(token, account.account_id),
@@ -58,7 +58,8 @@ defmodule Mix.Tasks.Spendable.Balances do
       {:ok, account}
     else
       {:error, reason} ->
-        Mix.shell().error(
+        IO.puts(
+          :stderr,
           "Failed to import balance for account #{account.account_id}: #{inspect(reason)}"
         )
 
@@ -93,16 +94,14 @@ defmodule Mix.Tasks.Spendable.Balances do
             {:ok, _balance} ->
               amount_display = amount_cents / 100
 
-              Mix.shell().info(
-                "  Updated balance: #{amount_display} #{currency} (#{amount_cents} cents)"
-              )
+              IO.puts("  Updated balance: #{amount_display} #{currency} (#{amount_cents} cents)")
 
             {:error, changeset} ->
-              Mix.shell().error("  Failed to save balance: #{inspect(changeset.errors)}")
+              IO.puts(:stderr, "  Failed to save balance: #{inspect(changeset.errors)}")
           end
 
         {:error, reason} ->
-          Mix.shell().error("  Failed to parse balance: #{reason}")
+          IO.puts(:stderr, "  Failed to parse balance: #{reason}")
       end
     end)
 

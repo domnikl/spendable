@@ -76,7 +76,7 @@ defmodule Spendable.Users do
   """
   def register_user(attrs) do
     %User{}
-    |> User.registration_changeset(attrs)
+    |> User.registration_changeset(attrs, auto_confirm: true)
     |> Repo.insert()
   end
 
@@ -90,7 +90,11 @@ defmodule Spendable.Users do
 
   """
   def change_user_registration(%User{} = user, attrs \\ %{}) do
-    User.registration_changeset(user, attrs, hash_password: false, validate_email: false)
+    User.registration_changeset(user, attrs,
+      hash_password: false,
+      validate_email: false,
+      auto_confirm: false
+    )
   end
 
   ## Settings

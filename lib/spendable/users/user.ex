@@ -41,6 +41,7 @@ defmodule Spendable.Users.User do
     |> cast(attrs, [:email, :password])
     |> validate_email(opts)
     |> validate_password(opts)
+    |> maybe_auto_confirm(opts)
   end
 
   defp validate_email(changeset, opts) do
@@ -87,6 +88,11 @@ defmodule Spendable.Users.User do
     else
       changeset
     end
+  end
+
+  defp maybe_auto_confirm(changeset, _opts) do
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+    put_change(changeset, :confirmed_at, now)
   end
 
   @doc """

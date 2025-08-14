@@ -5,7 +5,7 @@ defmodule Mix.Tasks.Spendable.TestTransactionDescriptions do
   ## Examples
 
       $ mix spendable.test_transaction_descriptions
-      
+
   This task creates a mock transaction with description to demonstrate the functionality.
   """
 
@@ -15,7 +15,7 @@ defmodule Mix.Tasks.Spendable.TestTransactionDescriptions do
   @shortdoc "Test transaction descriptions functionality"
 
   def run(_) do
-    Mix.Task.run("app.start")
+    {:ok, _} = Application.ensure_all_started(:spendable)
 
     IO.puts("🧪 Testing Transaction Description Import Functionality")
     IO.puts("")

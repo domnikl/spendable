@@ -17,6 +17,7 @@ defmodule Mix.Tasks.Spendable.Transactions do
   @impl Mix.Task
   def run(_args) do
     IO.puts("Fetching transactions...")
+    {:ok, _} = Application.ensure_all_started(:spendable)
     Transactions.import_transactions()
     IO.puts("Transactions fetched successfully.")
   end

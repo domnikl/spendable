@@ -19,6 +19,7 @@ defmodule Mix.Tasks.Spendable.Balances do
   @impl Mix.Task
   def run(_args) do
     IO.puts("Importing account balances...")
+    {:ok, _} = Application.ensure_all_started(:spendable)
 
     case import_balances() do
       {:ok, count} ->

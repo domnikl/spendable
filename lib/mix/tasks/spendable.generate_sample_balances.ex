@@ -5,7 +5,7 @@ defmodule Mix.Tasks.Spendable.GenerateSampleBalances do
   ## Examples
 
       $ mix spendable.generate_sample_balances
-      
+
   This task creates sample balance data for all user accounts.
   """
 
@@ -17,7 +17,7 @@ defmodule Mix.Tasks.Spendable.GenerateSampleBalances do
   @shortdoc "Generate sample balance data for chart testing"
 
   def run(_) do
-    Mix.Task.run("app.start")
+    {:ok, _} = Application.ensure_all_started(:spendable)
 
     IO.puts("🏦 Generating Sample Balance Data for Chart Testing")
     IO.puts("")

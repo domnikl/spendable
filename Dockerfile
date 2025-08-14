@@ -20,8 +20,10 @@ ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
 
 FROM ${BUILDER_IMAGE} AS builder
 
-# install build dependencies
-RUN apt-get update -y && apt-get install -y build-essential git \
+# install build dependencies including Node.js
+RUN apt-get update -y && apt-get install -y build-essential git curl \
+    && curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs \
     && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 # prepare build dir
@@ -51,7 +53,12 @@ COPY lib lib
 
 COPY assets assets
 
-# compile assets
+# install npm dependencies
+WORKDIR /app/assets
+RUN npm install
+
+# go back to app root and compile assets
+WORKDIR /app
 RUN mix assets.deploy
 
 # Compile the release
@@ -95,4 +102,4 @@ USER nobody
 # above and adding an entrypoint. See https://github.com/krallin/tini for details
 # ENTRYPOINT ["/tini", "--"]
 
-CMD ["/app/bin/server"]
+CMD ["/app/bin/spendable", "start"]

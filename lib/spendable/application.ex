@@ -7,6 +7,12 @@ defmodule Spendable.Application do
 
   @impl true
   def start(_type, _args) do
+    # Check if GoCardless is configured
+    gocardless_configured = 
+      Application.get_env(:spendable, Gocardless.Client) != nil &&
+      Application.get_env(:spendable, Gocardless.Client)[:secret_id] != nil &&
+      Application.get_env(:spendable, Gocardless.Client)[:secret_key] != nil
+
     children = [
       SpendableWeb.Telemetry,
       Spendable.Repo,
@@ -15,12 +21,18 @@ defmodule Spendable.Application do
       TwMerge.Cache,
       # Start the Finch HTTP client for sending emails
       {Finch, name: Spendable.Finch},
-      {Gocardless.Supervisor, []},
       # Start a worker by calling: Spendable.Worker.start_link(arg)
       # {Spendable.Worker, arg},
       # Start to serve requests, typically the last entry
       SpendableWeb.Endpoint
     ]
+
+    # Only add GoCardless supervisor if configured
+    children = if gocardless_configured do
+      children ++ [{Gocardless.Supervisor, []}]
+    else
+      children
+    end
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options

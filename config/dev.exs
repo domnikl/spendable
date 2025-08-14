@@ -85,13 +85,5 @@ config :phoenix_live_view,
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
 
-# Configure Gocardless with secret id and secret key
-config :spendable, Gocardless.Client,
-  secret_id: System.get_env("GOCARDLESS_SECRET_ID"),
-  secret_key: System.get_env("GOCARDLESS_SECRET_KEY"),
-  environment: :sandbox,
-  redirect_uri: "http://localhost:4001/setup/institution/callback",
-  base_url: System.get_env("GOCARDLESS_BASE_URL")
-
 # Path to install SaladUI components
 config :salad_ui, components_path: Path.join(File.cwd!(), "lib/spendable_web/components")

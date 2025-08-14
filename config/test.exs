@@ -39,11 +39,3 @@ config :phoenix, :plug_init_mode, :runtime
 # Enable helpful, but potentially expensive runtime checks
 config :phoenix_live_view,
   enable_expensive_runtime_checks: true
-
-# Configure Gocardless with secret id and secret key
-config :spendable, Gocardless.Client,
-  secret_id: System.get_env("GOCARDLESS_SECRET_ID"),
-  secret_key: System.get_env("GOCARDLESS_SECRET_KEY"),
-  environment: :sandbox,
-  redirect_uri: "http://localhost:4001/api/gocardless/callback",
-  base_url: System.get_env("GOCARDLESS_BASE_URL")

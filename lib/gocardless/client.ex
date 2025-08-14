@@ -1,8 +1,6 @@
 defmodule Gocardless.Client do
   use GenServer
 
-  @config Application.compile_env(:spendable, Gocardless.Client)
-
   @moduledoc """
   A module for interacting with the Gocardless API.
   """
@@ -107,9 +105,10 @@ defmodule Gocardless.Client do
 
   def handle_call([:create_requisition, body], _from, state) do
     {:ok, s} = refresh_token(state)
+    config = Application.get_env(:spendable, Gocardless.Client)
 
     body =
-      Map.put(body, :redirect, "#{@config[:redirect_uri]}?reference=#{body.reference}")
+      Map.put(body, :redirect, "#{config[:redirect_uri]}?reference=#{body.reference}")
 
     {:reply, GocardlessApi.post_requisition(s.access_token, body), s}
   end
@@ -125,7 +124,8 @@ defmodule Gocardless.Client do
   end
 
   defp get_access_token() do
-    response = GocardlessApi.get_access_token(@config[:secret_id], @config[:secret_key])
+    config = Application.get_env(:spendable, Gocardless.Client)
+    response = GocardlessApi.get_access_token(config[:secret_id], config[:secret_key])
 
     case response do
       {:ok, token} ->

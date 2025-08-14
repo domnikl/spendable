@@ -115,3 +115,53 @@ if config_env() == :prod do
   #
   # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
 end
+
+# Configure Gocardless with secret id and secret key
+# These environment variables should be set in all environments
+gocardless_secret_id = System.get_env("GOCARDLESS_SECRET_ID")
+gocardless_secret_key = System.get_env("GOCARDLESS_SECRET_KEY")
+
+gocardless_base_url =
+  System.get_env("GOCARDLESS_BASE_URL") || "https://bankaccountdata.gocardless.com/api/v2"
+
+# Set redirect URI based on environment
+gocardless_redirect_uri =
+  case config_env() do
+    :prod ->
+      System.get_env("GOCARDLESS_REDIRECT_URI") ||
+        "https://yourdomain.com/api/gocardless/callback"
+
+    :dev ->
+      "http://localhost:4001/setup/institution/callback"
+
+    :test ->
+      "http://localhost:4001/api/gocardless/callback"
+  end
+
+# Only configure GoCardless if credentials are available
+if gocardless_secret_id && gocardless_secret_key do
+  config :spendable, Gocardless.Client,
+    secret_id: gocardless_secret_id,
+    secret_key: gocardless_secret_key,
+    environment: :sandbox,
+    redirect_uri: gocardless_redirect_uri,
+    base_url: gocardless_base_url
+else
+  # In development/test, allow the app to start without GoCardless credentials
+  # but warn the user
+  if config_env() != :prod do
+    IO.puts("""
+    ⚠️  GoCardless credentials not found. Set GOCARDLESS_SECRET_ID and GOCARDLESS_SECRET_KEY
+    environment variables to enable GoCardless integration.
+
+    For development, you can use direnv or set them manually:
+    export GOCARDLESS_SECRET_ID="your_secret_id"
+    export GOCARDLESS_SECRET_KEY="your_secret_key"
+    """)
+  else
+    raise """
+    environment variable GOCARDLESS_SECRET_ID or GOCARDLESS_SECRET_KEY is missing.
+    Please set these environment variables for production deployment.
+    """
+  end
+end

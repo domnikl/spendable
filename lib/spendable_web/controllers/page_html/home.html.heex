@@ -15,10 +15,18 @@
       Ever feel like you have too many subscriptions? Spendable helps you keep track of your spendable balance, so you can make sure you're not overspending on things you don't use.
     </p>
 
-    <.button class="mt-8">
-      <.link href={~p"/dashboard"} class="text-white">
-        Get started <.icon name="hero-chevron-right" class="h-4 w-4" />
-      </.link>
-    </.button>
+    <%= if @current_user do %>
+      <.button class="mt-8">
+        <.link href={~p"/dashboard"} class="text-white">
+          Go to Dashboard <.icon name="hero-chevron-right" class="h-4 w-4" />
+        </.link>
+      </.button>
+    <% else %>
+      <.button class="mt-8">
+        <.link href={~p"/users/register"} class="text-white">
+          Get started <.icon name="hero-chevron-right" class="h-4 w-4" />
+        </.link>
+      </.button>
+    <% end %>
   </div>
 </div>

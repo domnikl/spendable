@@ -114,6 +114,13 @@ if config_env() == :prod do
   #     config :swoosh, :api_client, Swoosh.ApiClient.Hackney
   #
   # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
+
+  config :spendable, Spendable.Mailer,
+    adapter: Swoosh.Adapters.SparkPost,
+    api_key: System.get_env("SPARKPOST_API_KEY"),
+    endpoint: System.get_env("SPARKPOST_ENDPOINT")
+
+  config :swoosh, :api_client, Swoosh.ApiClient.Hackney
 end
 
 # Configure Gocardless with secret id and secret key
